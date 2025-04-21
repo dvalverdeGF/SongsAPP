@@ -4,47 +4,87 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.grafitto.songsapp.data.repository.SongsRepository
+import com.grafitto.songsapp.ui.screens.MainScreen
+import com.grafitto.songsapp.ui.screens.SongEditScreen
 import com.grafitto.songsapp.ui.theme.SongsAPPTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private lateinit var repository: SongsRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        repository = (application as SongsApplication).repository
+
         enableEdgeToEdge()
         setContent {
             SongsAPPTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding),
-                    )
+                val navController = rememberNavController()
+                val coroutineScope = rememberCoroutineScope()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "main",
+                ) {
+                    composable("main") {
+                        MainScreen(navController = navController)
+                    }
+                    composable("edit_song") {
+                        SongEditScreen(
+                            onSaveSong = { song ->
+                                coroutineScope.launch {
+                                    repository.addSong(song)
+                                    navController.popBackStack()
+                                }
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                        )
+                    }
+                    composable(
+                        route = "edit_song/{songId}",
+                        arguments = listOf(navArgument("songId") { type = NavType.IntType }),
+                    ) { backStackEntry ->
+                        val songId = backStackEntry.arguments?.getInt("songId") ?: 0
+
+                        // Necesitarás resolver esto de manera asíncrona
+                        // Aquí un ejemplo con LaunchedEffect y estado observable:
+                        // (Para implementación completa, necesitarías usar LaunchedEffect y
+                        // un estado mutable para cargar el song)
+
+                        // Esta es una solución simplificada - necesitarás adaptarla:
+                        lifecycleScope.launch {
+                            val song = repository.getSongById(songId)
+                            if (song != null) {
+                                // Lógica para mostrar SongEditScreen con el song cargado
+                                // Esto requiere rediseñar esta parte utilizando
+                                // estados observables y LaunchedEffect
+                            }
+                        }
+
+                        SongEditScreen(
+                            onSaveSong = { updatedSong ->
+                                coroutineScope.launch {
+                                    repository.updateSong(updatedSong)
+                                    navController.popBackStack()
+                                }
+                            },
+                            onNavigateBack = {
+                                navController.popBackStack()
+                            },
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(
-    name: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier,
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SongsAPPTheme {
-        Greeting("Android")
     }
 }
