@@ -126,7 +126,12 @@ fun MainContent(
     val verseDao = database.verseDao()
 
     // Crear el repositorio
-    val repository: SongsRepository = SongsRepositoryImpl(songDao, verseDao)
+    val repository: SongsRepository =
+        SongsRepositoryImpl(
+            database.songDao(),
+            database.verseDao(),
+            database.categoryDao(),
+        )
 
     // Usar collectAsState con manejo de errores
     val songs by repository

@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
@@ -45,7 +47,7 @@ fun SongEditScreen(
 ) {
     val context = LocalContext.current
     val database = SongsDatabase.getDatabase(context)
-    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao())
+    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao(), database.categoryDao())
 
     var existingSong by remember { mutableStateOf<Song?>(null) }
 
@@ -69,10 +71,10 @@ fun SongEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Crear canción") },
+                title = { Text(screenTitle) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
                     }
                 },
                 actions = {
@@ -116,6 +118,9 @@ fun SongEditScreen(
                         Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
+                    // No usar restricciones en el tipo de teclado
+                    keyboardOptions = KeyboardOptions.Default,
+                    singleLine = true,
                 )
             }
 
@@ -128,6 +133,8 @@ fun SongEditScreen(
                         Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
+                    keyboardOptions = KeyboardOptions.Default,
+                    singleLine = true,
                 )
             }
 

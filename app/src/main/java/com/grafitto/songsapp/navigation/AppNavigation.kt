@@ -15,6 +15,7 @@ import com.grafitto.songsapp.ui.screens.SongEditScreen
 import com.grafitto.songsapp.ui.screens.SongViewScreen
 import kotlinx.coroutines.launch
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun AppNavigation(repository: SongsRepository) {
     val navController = rememberNavController()

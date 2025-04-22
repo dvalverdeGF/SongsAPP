@@ -41,7 +41,7 @@ fun SongViewScreen(
 ) {
     val context = LocalContext.current
     val database = SongsDatabase.getDatabase(context)
-    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao())
+    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao(), database.categoryDao())
 
     var song by remember { mutableStateOf<Song?>(null) }
     var verses by remember { mutableStateOf<List<Verse>>(emptyList()) }

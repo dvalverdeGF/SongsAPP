@@ -9,4 +9,5 @@ data class SongEntity(
     val id: Int = 0,
     val title: String,
     val artist: String,
+    val referenceNumber: String = "", // Nuevo campo de número de referencia
 )

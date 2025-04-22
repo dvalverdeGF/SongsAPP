@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
                 (application as SongsApplication).repository
             } else {
                 val database = SongsDatabase.getDatabase(this)
-                SongsRepositoryImpl(database.songDao(), database.verseDao())
+                SongsRepositoryImpl(database.songDao(), database.verseDao(), database.categoryDao())
             }
 
         enableEdgeToEdge()
