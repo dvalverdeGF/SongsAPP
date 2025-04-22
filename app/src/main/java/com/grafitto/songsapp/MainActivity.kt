@@ -1,5 +1,6 @@
 package com.grafitto.songsapp
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,7 +12,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.repository.SongsRepository
+import com.grafitto.songsapp.data.repository.SongsRepositoryImpl
 import com.grafitto.songsapp.ui.screens.MainScreen
 import com.grafitto.songsapp.ui.screens.SongEditScreen
 import com.grafitto.songsapp.ui.theme.SongsAPPTheme
@@ -20,9 +23,18 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private lateinit var repository: SongsRepository
 
+    @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        repository = (application as SongsApplication).repository
+        // Reemplaza el casting directo con esta opción segura
+        repository =
+            if (application is SongsApplication) {
+                (application as SongsApplication).repository
+            } else {
+                // Fallback si no está configurada la aplicación personalizada
+                val database = SongsDatabase.getDatabase(this)
+                SongsRepositoryImpl(database.songDao(), database.verseDao())
+            }
 
         enableEdgeToEdge()
         setContent {

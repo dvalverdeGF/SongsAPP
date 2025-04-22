@@ -1,6 +1,15 @@
 package com.grafitto.songsapp.data.database.dao
 
-// SongDao.kt
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+import com.grafitto.songsapp.data.database.entity.SongEntity
+import com.grafitto.songsapp.data.database.relation.SongWithVerses
+import kotlinx.coroutines.flow.Flow
+
 @Dao
 interface SongDao {
     @Query("SELECT * FROM songs ORDER BY title ASC")
@@ -15,14 +24,7 @@ interface SongDao {
 
     @Update
     suspend fun updateSong(song: SongEntity)
-}
 
-// VerseDao.kt
-@Dao
-interface VerseDao {
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVerses(verses: List<VerseEntity>)
-
-    @Query("DELETE FROM verses WHERE songId = :songId")
-    suspend fun deleteVersesBySongId(songId: Int)
+    @Query("DELETE FROM songs")
+    suspend fun deleteAllSongs()
 }

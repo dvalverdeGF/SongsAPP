@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -18,16 +19,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.model.Song
 import com.grafitto.songsapp.data.repository.SongsRepository
+import com.grafitto.songsapp.data.repository.SongsRepositoryImpl
 import com.grafitto.songsapp.ui.components.EmptySongsMessage
 import com.grafitto.songsapp.ui.components.SongsList
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 @Suppress("ktlint:standard:function-naming")
@@ -109,7 +115,26 @@ fun MainContent(
     modifier: Modifier = Modifier,
     navController: NavController,
 ) {
-    val songs = remember { SongsRepository.getAllSongs() }
+    // Obtener el contexto
+    val context = LocalContext.current
+
+    // Obtener la base de datos
+    val database = SongsDatabase.getDatabase(context)
+
+    // Obtener los DAOs
+    val songDao = database.songDao()
+    val verseDao = database.verseDao()
+
+    // Crear el repositorio
+    val repository: SongsRepository = SongsRepositoryImpl(songDao, verseDao)
+
+    // Usar collectAsState con manejo de errores
+    val songs by repository
+        .getAllSongs()
+        .catch { exception ->
+            Log.e("MainScreen", "Error collecting songs", exception)
+            emit(emptyList<Song>())
+        }.collectAsState(initial = emptyList<Song>())
 
     if (songs.isEmpty()) {
         EmptySongsMessage(modifier)

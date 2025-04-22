@@ -53,14 +53,18 @@ fun SongEditScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            val song =
-                                Song(
-                                    id = 0, // Se asignará en el repositorio
-                                    title = title,
-                                    artist = artist,
-                                    verses = verses,
-                                )
-                            onSaveSong(song)
+                            if (title.isNotBlank() && artist.isNotBlank()) {
+                                val song =
+                                    Song(
+                                        id = 0, // Se asignará en el repositorio
+                                        title = title,
+                                        artist = artist,
+                                        verses = verses,
+                                    )
+                                onSaveSong(song)
+                            } else {
+                                // Mostrar un mensaje de error o manejar el caso
+                            }
                         },
                     ) {
                         Icon(Icons.Default.Save, contentDescription = "Guardar")

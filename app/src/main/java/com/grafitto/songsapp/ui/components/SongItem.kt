@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.grafitto.songsapp.data.model.Song
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun SongItem(
     song: Song,
