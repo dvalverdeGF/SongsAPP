@@ -142,8 +142,14 @@ fun MainContent(
         SongsList(
             songs = songs,
             modifier = modifier,
-            onSongClick = { song: Song ->
+            onSongClick = { /* Ahora solo se usa para expandir/contraer */ },
+            onSongEdit = { song ->
+                // Navegar a la pantalla de edición
                 navController.navigate("edit_song/${song.id}")
+            },
+            onSongView = { song ->
+                // Navegar a la pantalla de visualización en modo texto
+                navController.navigate("view_song/${song.id}")
             },
         )
     }

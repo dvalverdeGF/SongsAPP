@@ -23,6 +23,8 @@ fun SongsList(
     songs: List<Song>,
     modifier: Modifier = Modifier,
     onSongClick: (Song) -> Unit,
+    onSongEdit: (Song) -> Unit = {},
+    onSongView: (Song) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -33,6 +35,8 @@ fun SongsList(
             SongItem(
                 song = song,
                 onClick = { onSongClick(song) },
+                onEditClick = { onSongEdit(song) },
+                onViewClick = { onSongView(song) },
             )
         }
     }

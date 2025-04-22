@@ -19,27 +19,52 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.model.Song
 import com.grafitto.songsapp.data.model.Verse
+import com.grafitto.songsapp.data.repository.SongsRepositoryImpl
 import com.grafitto.songsapp.ui.components.VerseEditor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Suppress("ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SongEditScreen(
-    song: Song? = null,
+    songId: Int = 0, // 0 para canción nueva, otro valor para editar
     onSaveSong: (Song) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
-    var title by remember { mutableStateOf(song?.title ?: "") }
-    var artist by remember { mutableStateOf(song?.artist ?: "") }
-    var verses by remember { mutableStateOf(song?.verses ?: listOf(Verse())) }
+    val context = LocalContext.current
+    val database = SongsDatabase.getDatabase(context)
+    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao())
+
+    var existingSong by remember { mutableStateOf<Song?>(null) }
+
+    // Cargar la canción existente si se está editando
+    LaunchedEffect(songId) {
+        if (songId > 0) {
+            withContext(Dispatchers.IO) {
+                existingSong = repository.getSongById(songId)
+            }
+        }
+    }
+
+    // Inicializar estados con valores de la canción existente o valores predeterminados
+    var title by remember(existingSong) { mutableStateOf(existingSong?.title ?: "") }
+    var artist by remember(existingSong) { mutableStateOf(existingSong?.artist ?: "") }
+    var verses by remember(existingSong) { mutableStateOf(existingSong?.verses ?: listOf(Verse())) }
+
+    // Cambiar el título según si es edición o creación
+    val screenTitle = if (songId > 0) "Editar canción" else "Crear canción"
 
     Scaffold(
         topBar = {

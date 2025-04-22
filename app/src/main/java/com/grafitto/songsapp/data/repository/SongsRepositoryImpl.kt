@@ -21,6 +21,8 @@ class SongsRepositoryImpl(
 
     override suspend fun getSongById(id: Int): Song? = songDao.getSongWithVerses(id)?.toModel()
 
+    suspend fun getVersesBySongId(songId: Int): List<VerseEntity> = verseDao.getVersesBySongId(songId)
+
     override suspend fun addSong(song: Song) {
         val songId = songDao.insertSong(song.toEntity()).toInt()
 
