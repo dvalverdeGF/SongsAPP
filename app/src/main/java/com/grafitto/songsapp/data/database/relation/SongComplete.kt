@@ -34,13 +34,4 @@ data class SongComplete(
             ),
     )
     val categories: List<Category>,
-    // Relación para obtener la Letra detallada de la canción.
-    // Room buscará en la entidad Lyric (embebida dentro de LyricWithAllDetails)
-    // una columna llamada "song_id" para hacer la correspondencia con el "id" de Song.
-    @Relation(
-        entity = LyricWithAllDetails::class, // La clase que definimos para los detalles de la letra
-        parentColumn = "id", // Corresponde a Song.id
-        entityColumn = "song_id", // Corresponde a Lyric.songId (asumiendo que Lyric está en LyricWithAllDetails y tiene songId)
-    )
-    val lyricWithAllDetails: LyricWithAllDetails?, // Puede ser nulo si la canción no tiene letra
 )

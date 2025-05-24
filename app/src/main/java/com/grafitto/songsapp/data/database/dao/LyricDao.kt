@@ -3,7 +3,6 @@ package com.grafitto.songsapp.data.database.dao
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.grafitto.songsapp.data.database.entity.Lyric
-import com.grafitto.songsapp.data.database.relation.LyricWithAllDetails
 import com.grafitto.songsapp.data.database.relation.LyricWithVerses
 import kotlinx.coroutines.flow.Flow
 
@@ -27,8 +26,4 @@ interface LyricDao {
     @Transaction
     @Query("SELECT * FROM lyrics WHERE id = :lyricId")
     fun getLyricWithVersesById(lyricId: Long): LiveData<LyricWithVerses>
-
-    @Transaction
-    @Query("SELECT * FROM lyrics WHERE id = :lyricId")
-    fun getLyricWithAllDetailsById(lyricId: Long): LiveData<LyricWithAllDetails>
 }

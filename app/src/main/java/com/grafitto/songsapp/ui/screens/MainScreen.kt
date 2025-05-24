@@ -27,8 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.grafitto.songsapp.data.model.Song
 import com.grafitto.songsapp.data.repository.SongsRepository // Importación actualizada
-import com.grafitto.songsapp.ui.components.EmptySongsMessage
-import com.grafitto.songsapp.ui.components.SongsList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -123,20 +121,4 @@ fun MainContent(
             Log.e("MainScreen", "Error collecting songs", exception)
             emit(emptyList<Song>())
         }.collectAsState(initial = emptyList<Song>())
-
-    if (songs.isEmpty()) {
-        EmptySongsMessage(modifier)
-    } else {
-        SongsList(
-            songs = songs,
-            modifier = modifier,
-            onSongClick = { /* Ahora solo se usa para expandir/contraer */ },
-            onSongEdit = { song ->
-                navController.navigate("edit_song/${song.id}")
-            },
-            onSongView = { song ->
-                navController.navigate("view_song/${song.id}")
-            },
-        )
-    }
 }

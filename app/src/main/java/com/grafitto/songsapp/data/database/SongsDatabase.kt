@@ -61,6 +61,7 @@ abstract class SongsDatabase : RoomDatabase() {
     abstract fun songCategoryDao(): SongCategoryDao
 
     companion object {
+        @Suppress("ktlint:standard:property-naming")
         @Volatile
         private var INSTANCE: SongsDatabase? = null
 
