@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,72 +30,107 @@ fun CategoryListScreen(
     onNavigateToChildren: (Category) -> Unit,
     onBack: (() -> Unit)? = null,
     parentId: Long? = null,
-    drawerState: DrawerState,
+    drawerState: DrawerState?,
 ) {
     val categories by viewModel.categories.observeAsState(emptyList())
     val scope = rememberCoroutineScope()
     val filteredCategories = categories.filter { it.parentId == parentId }
+    val parentCategory = categories.find { it.id == parentId }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Categorías") },
+                title = { Text(parentCategory?.name ?: "Categorías", color = MaterialTheme.colorScheme.onPrimary) },
                 navigationIcon = {
-                    Row {
-                        if (onBack != null) {
-                            IconButton(onClick = { onBack() }) {
-                                Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
-                            }
-                        }
+                    // Solo mostrar el icono de menú si drawerState no es null (modo drawer antiguo)
+                    if (drawerState != null) {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menú")
+                            Icon(
+                                Icons.Default.Menu,
+                                contentDescription = "Menú",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                            )
                         }
                     }
                 },
+                actions = {
+                    if (onBack != null) {
+                        IconButton(onClick = { onBack() }) {
+                            Icon(
+                                Icons.Default.ArrowBack,
+                                contentDescription = "Atrás",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        }
+                    }
+                },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onAddCategory(parentId) }) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar categoría")
+            FloatingActionButton(
+                onClick = { onAddCategory(parentId) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Agregar categoría",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
             }
         },
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
-            items(filteredCategories) { category ->
-                var expanded by remember { mutableStateOf(false) }
-                Surface(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth(),
-                    tonalElevation = 2.dp,
-                    shadowElevation = 1.dp,
-                    onClick = { onNavigateToChildren(category) },
-                ) {
-                    Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Menu, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-                            Text(category.name ?: "(Sin nombre)", modifier = Modifier.weight(1f))
-                        }
-                        Box {
-                            IconButton(onClick = { expanded = true }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
+        if (filteredCategories.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                Text(
+                    text = "No hay categorías",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.align(Alignment.Center),
+                )
+            }
+        } else {
+            LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
+                items(filteredCategories) { category ->
+                    var expanded by remember { mutableStateOf(false) }
+                    Column {
+                        Row(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .clickable { onNavigateToChildren(category) },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                category.name ?: "(Sin nombre)",
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Box {
+                                IconButton(onClick = { expanded = true }) {
+                                    Icon(
+                                        Icons.Default.MoreVert,
+                                        contentDescription = "Opciones",
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                    )
+                                }
+                                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                    DropdownMenuItem(
+                                        text = { Text("Editar", color = MaterialTheme.colorScheme.onPrimary) },
+                                        onClick = {
+                                            expanded = false
+                                            onEditCategory(category)
+                                        },
+                                    )
+                                }
                             }
-                            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                DropdownMenuItem(
-                                    text = { Text("Editar") },
-                                    onClick = {
-                                        expanded = false
-                                        onEditCategory(category)
-                                    },
-                                )
-                            }
                         }
+                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), thickness = 1.dp)
                     }
                 }
             }

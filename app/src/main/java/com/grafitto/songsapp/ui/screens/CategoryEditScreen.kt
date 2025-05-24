@@ -21,7 +21,7 @@ fun CategoryEditScreen(
     navController: NavController,
     viewModel: CategoryViewModel,
     categoryToEdit: Category? = null,
-    drawerState: DrawerState,
+    drawerState: DrawerState?,
     defaultParentId: Long? = null,
 ) {
     var name by remember { mutableStateOf(categoryToEdit?.name ?: "") }
@@ -39,12 +39,26 @@ fun CategoryEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEdit) "Editar Categoría" else "Nueva Categoría") },
+                title = {
+                    Text(
+                        if (isEdit) "Editar Categoría" else "Nueva Categoría",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                },
                 navigationIcon = {
-                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menú")
+                    IconButton(onClick = { scope.launch { drawerState?.open() } }) {
+                        Icon(
+                            Icons.Default.Menu,
+                            contentDescription = "Menú",
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                        )
                     }
                 },
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
             )
         },
         floatingActionButton = {
@@ -63,8 +77,10 @@ fun CategoryEditScreen(
                     }
                     navController.popBackStack()
                 },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Guardar")
+                Icon(Icons.Default.Check, contentDescription = "Guardar", tint = MaterialTheme.colorScheme.onPrimary)
             }
         },
     ) { padding ->
@@ -86,12 +102,20 @@ fun CategoryEditScreen(
             // Dropdown para seleccionar categoría padre
             var expanded by remember { mutableStateOf(false) }
             val parentCategory = allCategories.find { it.id == parentId }
-            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-                Text(parentCategory?.name ?: "Sin categoría padre")
+            OutlinedButton(
+                onClick = { expanded = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+            ) {
+                Text(parentCategory?.name ?: "Sin categoría padre", color = MaterialTheme.colorScheme.primary)
             }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 DropdownMenuItem(
-                    text = { Text("Sin categoría padre") },
+                    text = { Text("Sin categoría padre", color = MaterialTheme.colorScheme.onPrimary) },
                     onClick = {
                         parentId = null
                         expanded = false
@@ -99,7 +123,7 @@ fun CategoryEditScreen(
                 )
                 allCategories.filter { it.id != categoryToEdit?.id }.forEach { cat ->
                     DropdownMenuItem(
-                        text = { Text(cat.name ?: "(Sin nombre)") },
+                        text = { Text(cat.name ?: "(Sin nombre)", color = MaterialTheme.colorScheme.onPrimary) },
                         onClick = {
                             parentId = cat.id
                             expanded = false
