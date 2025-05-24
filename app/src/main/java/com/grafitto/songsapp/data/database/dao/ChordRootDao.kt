@@ -1,8 +1,8 @@
 package com.grafitto.songsapp.data.database.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.grafitto.songsapp.data.database.entity.ChordRoot
-import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChordRootDao {
@@ -16,9 +16,8 @@ interface ChordRootDao {
     suspend fun delete(chordRoot: ChordRoot)
 
     @Query("SELECT * FROM chord_roots WHERE id = :id")
-    suspend fun getById(id: Long): ChordRoot?
+    fun getChordRootById(id: Long): LiveData<ChordRoot>
 
     @Query("SELECT * FROM chord_roots")
-    fun getAll(): Flow<List<ChordRoot>>
+    fun getAllChordRoots(): LiveData<List<ChordRoot>>
 }
-

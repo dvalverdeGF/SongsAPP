@@ -11,35 +11,35 @@ import com.grafitto.songsapp.data.database.entity.ChordVariant // Asegúrate de 
 import com.grafitto.songsapp.data.database.entity.LyricChord // Asegúrate de que LyricChord.kt tenga las FKs necesarias
 
 data class DetailedLyricChord(
-    @Embedded val lyricChord: LyricChord,
+    @Embedded val lyricChord: LyricChord, // Sin prefix
     @Relation(
-        parentColumn = "chord_root_id", // Campo FK en LyricChord.kt
-        entityColumn = "id", // Campo PK en ChordRoot.kt
+        parentColumn = "chord_root_id",
+        entityColumn = "id",
     )
     val chordRoot: ChordRoot,
     @Relation(
-        parentColumn = "accidental_id", // Campo FK en LyricChord.kt
-        entityColumn = "id", // Campo PK en ChordAccidental.kt
+        parentColumn = "accidental_id",
+        entityColumn = "id",
     )
     val accidental: ChordAccidental?,
     @Relation(
-        parentColumn = "quality_id", // Campo FK en LyricChord.kt
-        entityColumn = "id", // Campo PK en ChordQuality.kt
+        parentColumn = "quality_id",
+        entityColumn = "id",
     )
     val quality: ChordQuality?,
     @Relation(
-        parentColumn = "extension_id", // Campo FK en LyricChord.kt
-        entityColumn = "id", // Campo PK en ChordExtension.kt
+        parentColumn = "extension_id",
+        entityColumn = "id",
     )
     val extension: ChordExtension?,
     @Relation(
-        parentColumn = "modifier_id", // Campo FK en LyricChord.kt
-        entityColumn = "id", // Campo PK en ChordModifier.kt
+        parentColumn = "modifier_id",
+        entityColumn = "id",
     )
     val modifier: ChordModifier?,
     @Relation(
-        parentColumn = "variant_id", // Campo FK en LyricChord.kt
-        entityColumn = "id", // Campo PK en ChordVariant.kt
+        parentColumn = "variant_id",
+        entityColumn = "id",
     )
     val variant: ChordVariant?,
 )

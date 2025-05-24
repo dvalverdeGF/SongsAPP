@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.data.database.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.grafitto.songsapp.data.database.entity.ChordAccidental
 import kotlinx.coroutines.flow.Flow
@@ -20,5 +21,7 @@ interface ChordAccidentalDao {
 
     @Query("SELECT * FROM chord_accidentals")
     fun getAll(): Flow<List<ChordAccidental>>
-}
 
+    @Query("SELECT * FROM chord_accidentals")
+    fun getAllChordAccidentals(): LiveData<List<ChordAccidental>>
+}

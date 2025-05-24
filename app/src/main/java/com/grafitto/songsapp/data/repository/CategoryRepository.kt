@@ -13,14 +13,14 @@ class CategoryRepository(
     fun getCategoryWithSongsById(categoryId: Long): LiveData<CategoryWithSongs> = categoryDao.getCategoryWithSongsById(categoryId)
 
     suspend fun insert(category: Category) {
-        categoryDao.insert(category)
+        categoryDao.insertCategory(category)
     }
 
     suspend fun update(category: Category) {
-        categoryDao.update(category)
+        categoryDao.updateCategory(category)
     }
 
     suspend fun delete(category: Category) {
-        categoryDao.delete(category)
+        categoryDao.deleteCategory(category)
     }
 }

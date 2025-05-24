@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.data.database.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.grafitto.songsapp.data.database.entity.ChordQuality
 import kotlinx.coroutines.flow.Flow
@@ -20,5 +21,7 @@ interface ChordQualityDao {
 
     @Query("SELECT * FROM chord_qualities")
     fun getAll(): Flow<List<ChordQuality>>
-}
 
+    @Query("SELECT * FROM chord_qualities")
+    fun getAllChordQualities(): LiveData<List<ChordQuality>>
+}

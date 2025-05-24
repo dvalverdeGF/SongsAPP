@@ -17,7 +17,7 @@ interface CategoryDao {
     fun getAllCategories(): LiveData<List<Category>>
 
     @Query("SELECT * FROM categories WHERE parent_id IS NULL ORDER BY name ASC")
-    suspend fun getRootCategories(): LiveData<List<Category>>
+    fun getRootCategories(): LiveData<List<Category>> // quitar suspend
 
     @Query("SELECT * FROM categories WHERE parent_id = :categoryId ORDER BY name ASC")
     suspend fun getChildCategories(categoryId: Int): List<Category>
