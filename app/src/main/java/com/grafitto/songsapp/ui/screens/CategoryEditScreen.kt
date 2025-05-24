@@ -3,17 +3,17 @@ package com.grafitto.songsapp.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.grafitto.songsapp.data.database.entity.Category
 import com.grafitto.songsapp.ui.viewmodel.CategoryViewModel
-import kotlinx.coroutines.launch
+// import kotlinx.coroutines.launch // No longer needed here
 
 @Suppress("ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,14 +22,13 @@ fun CategoryEditScreen(
     navController: NavController,
     viewModel: CategoryViewModel,
     categoryToEdit: Category? = null,
-    drawerState: DrawerState?,
     defaultParentId: Long? = null,
 ) {
     var name by remember { mutableStateOf(categoryToEdit?.name ?: "") }
     val isEdit = categoryToEdit != null
     val allCategories by viewModel.categories.observeAsState(emptyList())
     var parentId by remember { mutableStateOf(if (isEdit) categoryToEdit?.parentId else defaultParentId) }
-    val scope = rememberCoroutineScope()
+    // val scope = rememberCoroutineScope() // No longer needed for drawer
 
     // Sincronizar el estado cuando categoryToEdit cambie
     LaunchedEffect(categoryToEdit) {
@@ -44,46 +43,41 @@ fun CategoryEditScreen(
                     Text(
                         if (isEdit) "Editar Categoría" else "Nueva Categoría",
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = { scope.launch { drawerState?.open() } }) {
+                actions = {
+                    IconButton(onClick = {
+                        val category =
+                            if (isEdit) {
+                                categoryToEdit!!.copy(name = name, parentId = parentId)
+                            } else {
+                                Category(name = name, parentId = parentId)
+                            }
+                        if (isEdit) {
+                            viewModel.updateCategory(category)
+                        } else {
+                            viewModel.insertCategory(category)
+                        }
+                        navController.popBackStack()
+                    }) {
                         Icon(
-                            Icons.Default.Menu,
-                            contentDescription = "Menú",
-                            tint = MaterialTheme.colorScheme.onPrimary,
+                            Icons.Default.Check,
+                            contentDescription = "Guardar",
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 },
                 colors =
                     TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                        actionIconContentColor = MaterialTheme.colorScheme.primary,
                     ),
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val category =
-                        if (isEdit) {
-                            categoryToEdit!!.copy(name = name, parentId = parentId)
-                        } else {
-                            Category(name = name, parentId = parentId)
-                        }
-                    if (isEdit) {
-                        viewModel.updateCategory(category)
-                    } else {
-                        viewModel.insertCategory(category)
-                    }
-                    navController.popBackStack()
-                },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ) {
-                Icon(Icons.Default.Check, contentDescription = "Guardar", tint = MaterialTheme.colorScheme.onPrimary)
-            }
+            // FloatingActionButton eliminado
         },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
@@ -127,7 +121,7 @@ fun CategoryEditScreen(
                     }
                     DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                         DropdownMenuItem(
-                            text = { Text("Sin categoría padre", color = MaterialTheme.colorScheme.onPrimary) },
+                            text = { Text("Sin categoría padre", color = MaterialTheme.colorScheme.onSurface) }, // Ajustado color para DropdownMenu
                             onClick = {
                                 parentId = null
                                 expanded = false
@@ -135,7 +129,7 @@ fun CategoryEditScreen(
                         )
                         allCategories.filter { it.id != categoryToEdit?.id }.forEach { cat ->
                             DropdownMenuItem(
-                                text = { Text(cat.name ?: "(Sin nombre)", color = MaterialTheme.colorScheme.onPrimary) },
+                                text = { Text(cat.name ?: "(Sin nombre)", color = MaterialTheme.colorScheme.onSurface) }, // Ajustado color
                                 onClick = {
                                     parentId = cat.id
                                     expanded = false

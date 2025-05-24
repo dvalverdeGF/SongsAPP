@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -51,19 +50,6 @@ fun CategoryListScreen(
                             containerColor = MaterialTheme.colorScheme.primary,
                             titleContentColor = MaterialTheme.colorScheme.onPrimary,
                         ),
-                )
-            }
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onAddCategory(parentId) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = "Agregar categoría",
-                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         },

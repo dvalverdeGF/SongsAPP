@@ -7,18 +7,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -26,7 +30,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
@@ -64,14 +67,16 @@ fun AppNavigation(repository: SongsRepository) {
                 Triple("opcion2", Icons.Default.Info, "Info"),
             )
 
-        val currentBackStackEntry = navController.currentBackStackEntryAsState().value
+        val currentBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = currentBackStackEntry?.destination?.route
         val headerTitle =
             when {
                 currentRoute == null || currentRoute == "main" -> "Songs App"
-                currentRoute.startsWith("categories") -> "Categorías"
+                currentRoute.startsWith("categories") && !currentRoute.contains("edit") -> "Categorías"
+                currentRoute == "categories" -> "Categorías"
+                currentRoute == "categories/{parentId}" -> "Categorías"
                 currentRoute.startsWith("category_edit") -> {
-                    val isEdit = currentRoute.contains("category_edit/")
+                    val isEdit = currentRoute.contains("category_edit/") && !currentRoute.contains("parentId")
                     if (isEdit) "Editar Categoría" else "Nueva Categoría"
                 }
                 currentRoute == "opcion1" -> "Ajustes"
@@ -106,7 +111,7 @@ fun AppNavigation(repository: SongsRepository) {
                         }
                     }
                     Box(modifier = Modifier.weight(1f).fillMaxSize()) {
-                        androidx.compose.material3.Scaffold(
+                        Scaffold(
                             topBar = {
                                 TopAppBar(
                                     title = { Text(headerTitle, color = MaterialTheme.colorScheme.onPrimary) },
@@ -118,7 +123,7 @@ fun AppNavigation(repository: SongsRepository) {
                                     scrollBehavior = scrollBehavior,
                                 )
                             },
-                            containerColor = MaterialTheme.colorScheme.background,
+                            //  containerColor = MaterialTheme.colorScheme.background,
                             contentWindowInsets =
                                 androidx.compose.foundation.layout
                                     .WindowInsets(0, 0, 0, 0),
@@ -148,7 +153,7 @@ fun AppNavigation(repository: SongsRepository) {
                                             )
                                         CategoryListScreen(
                                             viewModel = categoryViewModel,
-                                            onAddCategory = { pid -> navController.navigate("category_edit?parentId=$pid") },
+                                            onAddCategory = { navController.navigate("category_edit") },
                                             onEditCategory = { navController.navigate("category_edit/${it.id}") },
                                             onNavigateToChildren = { navController.navigate("categories/${it.id}") },
                                             onBack = null,
@@ -181,15 +186,10 @@ fun AppNavigation(repository: SongsRepository) {
                                         val parentId = backStackEntry.arguments?.getString("parentId")?.toLongOrNull()
                                         CategoryListScreen(
                                             viewModel = categoryViewModel,
-                                            onAddCategory = { pid -> navController.navigate("category_edit?parentId=$pid") },
+                                            onAddCategory = { pId -> navController.navigate("category_edit?parentId=$pId") },
                                             onEditCategory = { navController.navigate("category_edit/${it.id}") },
                                             onNavigateToChildren = { navController.navigate("categories/${it.id}") },
-                                            onBack =
-                                                if (parentId != null) {
-                                                    { navController.popBackStack() }
-                                                } else {
-                                                    null
-                                                },
+                                            onBack = { navController.popBackStack() },
                                             parentId = parentId,
                                             drawerState = null,
                                         )
@@ -206,7 +206,7 @@ fun AppNavigation(repository: SongsRepository) {
                                             navController = navController,
                                             viewModel = categoryViewModel,
                                             categoryToEdit = null,
-                                            drawerState = null,
+                                            defaultParentId = null,
                                         )
                                     }
                                     composable("category_edit/{categoryId}") { backStackEntry ->
@@ -225,7 +225,6 @@ fun AppNavigation(repository: SongsRepository) {
                                             navController = navController,
                                             viewModel = categoryViewModel,
                                             categoryToEdit = category,
-                                            drawerState = null,
                                         )
                                     }
                                     composable("category_edit?parentId={parentId}") { backStackEntry ->
@@ -241,7 +240,6 @@ fun AppNavigation(repository: SongsRepository) {
                                             navController = navController,
                                             viewModel = categoryViewModel,
                                             categoryToEdit = null,
-                                            drawerState = null,
                                             defaultParentId = parentId,
                                         )
                                     }
@@ -252,8 +250,54 @@ fun AppNavigation(repository: SongsRepository) {
                 }
             } else {
                 // Móvil: Bottom Navigation estilo Google Home
-                androidx.compose.material3.Scaffold(
-                    topBar = {},
+                Scaffold(
+                    topBar = {
+                        val currentDestinationRoute = currentBackStackEntry?.destination?.route
+                        // Solo mostrar el TopAppBar global si no estamos en una pantalla de edición de categoría
+                        if (currentDestinationRoute?.startsWith("category_edit") != true) {
+                            TopAppBar(
+                                title = { }, // Título eliminado para una barra más estrecha
+                                colors =
+                                    TopAppBarDefaults.topAppBarColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                                    ),
+                                scrollBehavior = scrollBehavior,
+                                navigationIcon = {
+                                    if (navController.previousBackStackEntry != null) {
+                                        IconButton(onClick = { navController.popBackStack() }) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                contentDescription = "Atrás",
+                                                // tint = MaterialTheme.colorScheme.onPrimary // Hereda de actionIconContentColor
+                                            )
+                                        }
+                                    }
+                                },
+                                actions = {
+                                    if (currentDestinationRoute == "categories" || currentDestinationRoute == "categories/{parentId}") {
+                                        IconButton(onClick = {
+                                            if (currentDestinationRoute == "categories") {
+                                                navController.navigate("category_edit") // Add root category
+                                            } else { // currentDestinationRoute == "categories/{parentId}"
+                                                val parentIdArg = currentBackStackEntry?.arguments?.getString("parentId")
+                                                navController.navigate("category_edit?parentId=$parentIdArg")
+                                            }
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Filled.Add,
+                                                contentDescription = "Añadir Categoría",
+                                                // tint = MaterialTheme.colorScheme.onPrimary // Hereda de actionIconContentColor
+                                            )
+                                        }
+                                    }
+                                },
+                            )
+                        } else {
+                            // No se muestra TopAppBar aquí; CategoryEditScreen tiene el suyo.
+                        }
+                    },
                     containerColor = MaterialTheme.colorScheme.background,
                     contentWindowInsets =
                         androidx.compose.foundation.layout
@@ -304,7 +348,7 @@ fun AppNavigation(repository: SongsRepository) {
                                     )
                                 CategoryListScreen(
                                     viewModel = categoryViewModel,
-                                    onAddCategory = { pid -> navController.navigate("category_edit?parentId=$pid") },
+                                    onAddCategory = { navController.navigate("category_edit") },
                                     onEditCategory = { navController.navigate("category_edit/${it.id}") },
                                     onNavigateToChildren = { navController.navigate("categories/${it.id}") },
                                     onBack = null,
@@ -337,15 +381,10 @@ fun AppNavigation(repository: SongsRepository) {
                                 val parentId = backStackEntry.arguments?.getString("parentId")?.toLongOrNull()
                                 CategoryListScreen(
                                     viewModel = categoryViewModel,
-                                    onAddCategory = { pid -> navController.navigate("category_edit?parentId=$pid") },
+                                    onAddCategory = { pId -> navController.navigate("category_edit?parentId=$pId") },
                                     onEditCategory = { navController.navigate("category_edit/${it.id}") },
                                     onNavigateToChildren = { navController.navigate("categories/${it.id}") },
-                                    onBack =
-                                        if (parentId != null) {
-                                            { navController.popBackStack() }
-                                        } else {
-                                            null
-                                        },
+                                    onBack = { navController.popBackStack() },
                                     parentId = parentId,
                                     drawerState = null,
                                 )
@@ -362,7 +401,7 @@ fun AppNavigation(repository: SongsRepository) {
                                     navController = navController,
                                     viewModel = categoryViewModel,
                                     categoryToEdit = null,
-                                    drawerState = null,
+                                    defaultParentId = null,
                                 )
                             }
                             composable("category_edit/{categoryId}") { backStackEntry ->
@@ -381,7 +420,6 @@ fun AppNavigation(repository: SongsRepository) {
                                     navController = navController,
                                     viewModel = categoryViewModel,
                                     categoryToEdit = category,
-                                    drawerState = null,
                                 )
                             }
                             composable("category_edit?parentId={parentId}") { backStackEntry ->
@@ -397,7 +435,6 @@ fun AppNavigation(repository: SongsRepository) {
                                     navController = navController,
                                     viewModel = categoryViewModel,
                                     categoryToEdit = null,
-                                    drawerState = null,
                                     defaultParentId = parentId,
                                 )
                             }
