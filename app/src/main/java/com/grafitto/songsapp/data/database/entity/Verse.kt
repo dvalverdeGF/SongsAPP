@@ -15,14 +15,25 @@ import androidx.room.PrimaryKey
             childColumns = ["lyric_id"],
             onDelete = ForeignKey.CASCADE,
         ),
+        ForeignKey(
+            entity = Song::class,
+            parentColumns = ["id"],
+            childColumns = ["song_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
     ],
-    indices = [Index(value = ["lyric_id"])],
+    indices = [
+        Index(value = ["lyric_id"]),
+        Index(value = ["song_id"]),
+    ],
 )
 data class Verse(
     @PrimaryKey(autoGenerate = true)
     val id: Long? = null,
     @ColumnInfo(name = "lyric_id")
     val lyricId: Long, // Clave foránea a Lyric
+    @ColumnInfo(name = "song_id")
+    val songId: Long, // Clave foránea a Song
     val text: String?, // Contenido del verso
     // Posición del verso en la letra
     @ColumnInfo(name = "order_in_lyric")

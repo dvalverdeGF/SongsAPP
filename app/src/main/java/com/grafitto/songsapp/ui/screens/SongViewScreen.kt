@@ -23,11 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.model.Song
-import com.grafitto.songsapp.data.model.Verse
+import com.grafitto.songsapp.data.repository.SongsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -36,34 +34,20 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SongViewScreen(
     songId: Int,
+    repository: SongsRepository,
     onNavigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val database = SongsDatabase.getDatabase(context)
-    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao(), database.categoryDao())
-
     var song by remember { mutableStateOf<Song?>(null) }
-    var verses by remember { mutableStateOf<List<Verse>>(emptyList()) }
 
     LaunchedEffect(songId) {
         withContext(Dispatchers.IO) {
             song = repository.getSongById(songId)
-
-            // Convertir correctamente de VerseEntity a Verse
-            val versesResult = repository.getVersesBySongId(songId)
-            verses =
-                versesResult.map { verseEntity ->
-                    Verse(
-                        chords = verseEntity.chords,
-                        lyrics = verseEntity.lyrics,
-                    )
-                }
         }
     }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(song?.title ?: "") },
+                title = { Text(song?.name ?: "") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -85,22 +69,22 @@ fun SongViewScreen(
         ) {
             song?.let { currentSong ->
                 Text(
-                    text = currentSong.title,
+                    text = currentSong.name,
                     style = MaterialTheme.typography.headlineSmall,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = currentSong.artist,
+                    text = currentSong.author?.name ?: "Autor Desconocido",
                     style = MaterialTheme.typography.titleMedium,
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                verses.forEach { verse ->
+                currentSong.lyric?.verses?.forEach { verse ->
                     Text(
-                        text = verse.lyrics,
+                        text = verse.text ?: "",
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.height(16.dp))

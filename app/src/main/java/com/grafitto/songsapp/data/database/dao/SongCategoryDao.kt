@@ -15,10 +15,12 @@ interface SongCategoryDao {
     @Delete
     suspend fun delete(songCategory: SongCategory)
 
-    @Query("SELECT * FROM song_categories WHERE songId = :songId AND categoryId = :categoryId")
-    suspend fun getById(songId: Long, categoryId: Long): SongCategory?
+    @Query("SELECT * FROM song_categories WHERE song_id = :songId AND category_id = :categoryId")
+    suspend fun getById(
+        songId: Long,
+        categoryId: Long,
+    ): SongCategory?
 
     @Query("SELECT * FROM song_categories")
     fun getAll(): Flow<List<SongCategory>>
 }
-

@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.data.database.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.grafitto.songsapp.data.database.entity.AnnotationSymbol
 import kotlinx.coroutines.flow.Flow
@@ -20,4 +21,10 @@ interface AnnotationSymbolDao {
 
     @Query("SELECT * FROM annotation_symbols")
     fun getAll(): Flow<List<AnnotationSymbol>>
+
+    @Query("SELECT * FROM annotation_symbols")
+    fun getAllAnnotationSymbols(): LiveData<List<AnnotationSymbol>>
+
+    @Query("SELECT * FROM annotation_symbols WHERE id = :lng")
+    fun getAnnotationSymbolById(lng: Long): LiveData<AnnotationSymbol>
 }

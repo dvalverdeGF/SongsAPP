@@ -8,11 +8,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.grafitto.songsapp.data.model.Song
+import com.grafitto.songsapp.data.repository.SongsRepository
 import com.grafitto.songsapp.ui.screens.MainScreen
 import com.grafitto.songsapp.ui.screens.SongEditScreen
 import com.grafitto.songsapp.ui.screens.SongViewScreen
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch // Necesario para coroutineScope.launch
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
@@ -25,22 +25,21 @@ fun AppNavigation(repository: SongsRepository) {
         startDestination = "main",
     ) {
         composable("main") {
-            MainScreen(navController = navController)
+            MainScreen(navController = navController, repository = repository)
         }
 
         // Ruta para crear una nueva canción
         composable("edit_song") {
             SongEditScreen(
                 songId = 0, // 0 indica una canción nueva
+                repository = repository,
                 onSaveSong = { song ->
                     coroutineScope.launch {
                         repository.addSong(song)
                         navController.popBackStack()
                     }
                 },
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                onNavigateBack = { navController.popBackStack() },
             )
         }
 
@@ -53,23 +52,15 @@ fun AppNavigation(repository: SongsRepository) {
 
             SongEditScreen(
                 songId = songId,
+                repository = repository,
                 onSaveSong = { updatedSong ->
                     coroutineScope.launch {
-                        // Usamos el ID original al actualizar
-                        val songWithOriginalId =
-                            Song(
-                                id = songId,
-                                title = updatedSong.title,
-                                artist = updatedSong.artist,
-                                verses = updatedSong.verses,
-                            )
-                        repository.updateSong(songWithOriginalId)
+                        val songToUpdate = updatedSong.copy(id = songId)
+                        repository.updateSong(songToUpdate)
                         navController.popBackStack()
                     }
                 },
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                onNavigateBack = { navController.popBackStack() },
             )
         }
 
@@ -82,9 +73,8 @@ fun AppNavigation(repository: SongsRepository) {
 
             SongViewScreen(
                 songId = songId,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
+                repository = repository,
+                onNavigateBack = { navController.popBackStack() },
             )
         }
     }

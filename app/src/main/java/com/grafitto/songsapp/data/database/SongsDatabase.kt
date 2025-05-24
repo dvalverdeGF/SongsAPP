@@ -15,7 +15,7 @@ import com.grafitto.songsapp.data.database.entity.*
         Verse::class,
         Category::class,
         Author::class,
-        Annotation::class,
+        LyricAnnotation::class,
         AnnotationSymbol::class,
         ChordAccidental::class,
         ChordExtension::class,
@@ -38,7 +38,7 @@ abstract class SongsDatabase : RoomDatabase() {
 
     abstract fun authorDao(): AuthorDao
 
-    abstract fun annotationDao(): AnnotationDao
+    abstract fun lyricAnnotationDao(): LyricAnnotationDao
 
     abstract fun annotationSymbolDao(): AnnotationSymbolDao
 

@@ -23,21 +23,23 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.model.Song
+import com.grafitto.songsapp.data.repository.SongsRepository // Importación actualizada
 import com.grafitto.songsapp.ui.components.EmptySongsMessage
 import com.grafitto.songsapp.ui.components.SongsList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 
 @Suppress("ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavController = rememberNavController()) {
+fun MainScreen(
+    navController: NavController,
+    repository: SongsRepository,
+) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -102,6 +104,7 @@ fun MainScreen(navController: NavController = rememberNavController()) {
             MainContent(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
+                repository = repository,
             )
         }
     }
@@ -112,28 +115,10 @@ fun MainScreen(navController: NavController = rememberNavController()) {
 fun MainContent(
     modifier: Modifier = Modifier,
     navController: NavController,
+    repository: SongsRepository, // Asegúrate que SongsRepository esté bien importado
 ) {
-    // Obtener el contexto
-    val context = LocalContext.current
-
-    // Obtener la base de datos
-    val database = SongsDatabase.getDatabase(context)
-
-    // Obtener los DAOs
-    val songDao = database.songDao()
-    val verseDao = database.verseDao()
-
-    // Crear el repositorio
-    val repository: SongsRepository =
-        SongsRepositoryImpl(
-            database.songDao(),
-            database.verseDao(),
-            database.categoryDao(),
-        )
-
-    // Usar collectAsState con manejo de errores
-    val songs by repository
-        .getAllSongs()
+    val songsFlow: Flow<List<Song>> = repository.getAllSongs()
+    val songs by songsFlow
         .catch { exception ->
             Log.e("MainScreen", "Error collecting songs", exception)
             emit(emptyList<Song>())
@@ -147,11 +132,9 @@ fun MainContent(
             modifier = modifier,
             onSongClick = { /* Ahora solo se usa para expandir/contraer */ },
             onSongEdit = { song ->
-                // Navegar a la pantalla de edición
                 navController.navigate("edit_song/${song.id}")
             },
             onSongView = { song ->
-                // Navegar a la pantalla de visualización en modo texto
                 navController.navigate("view_song/${song.id}")
             },
         )

@@ -10,7 +10,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,11 +26,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.model.Song
 import com.grafitto.songsapp.data.model.Verse
+import com.grafitto.songsapp.data.repository.SongsRepository
 import com.grafitto.songsapp.ui.components.VerseEditor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -41,13 +39,10 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SongEditScreen(
     songId: Int = 0, // 0 para canción nueva, otro valor para editar
+    repository: SongsRepository, // Recibir el repositorio como parámetro
     onSaveSong: (Song) -> Unit,
     onNavigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val database = SongsDatabase.getDatabase(context)
-    val repository = SongsRepositoryImpl(database.songDao(), database.verseDao(), database.categoryDao())
-
     var existingSong by remember { mutableStateOf<Song?>(null) }
 
     // Cargar la canción existente si se está editando
@@ -60,9 +55,10 @@ fun SongEditScreen(
     }
 
     // Inicializar estados con valores de la canción existente o valores predeterminados
-    var title by remember(existingSong) { mutableStateOf(existingSong?.title ?: "") }
-    var artist by remember(existingSong) { mutableStateOf(existingSong?.artist ?: "") }
-    var verses by remember(existingSong) { mutableStateOf(existingSong?.verses ?: listOf(Verse())) }
+    var title by remember(existingSong) { mutableStateOf(existingSong?.name ?: "") }
+    var artist by remember(existingSong) { mutableStateOf(existingSong?.author?.name ?: "") }
+    // El modelo Verse requiere el parámetro 'text', se inicializa con null.
+    var verses by remember(existingSong) { mutableStateOf(existingSong?.lyric?.verses ?: listOf(Verse(text = null))) }
 
     // Cambiar el título según si es edición o creación
     val screenTitle = if (songId > 0) "Editar canción" else "Crear canción"
@@ -79,13 +75,20 @@ fun SongEditScreen(
                 actions = {
                     IconButton(
                         onClick = {
-                            if (title.isNotBlank() && artist.isNotBlank()) {
+                            if (title.isNotBlank()) {
                                 val song =
                                     Song(
-                                        id = 0, // Se asignará en el repositorio
-                                        title = title,
-                                        artist = artist,
-                                        verses = verses,
+                                        id = if (songId > 0) songId else 0,
+                                        name = title,
+                                        reference = existingSong?.reference,
+                                        author =
+                                            existingSong?.author ?: com.grafitto.songsapp.data.model
+                                                .Author(name = artist),
+                                        categories = existingSong?.categories ?: emptyList(),
+                                        lyric =
+                                            existingSong?.lyric?.copy(verses = verses)
+                                                ?: com.grafitto.songsapp.data.model
+                                                    .Lyric(verses = verses),
                                     )
                                 onSaveSong(song)
                             } else {
@@ -107,7 +110,7 @@ fun SongEditScreen(
                     .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            // Campos de título y artista
+            // Campos de título y autor
             item {
                 OutlinedTextField(
                     value = title,
@@ -117,7 +120,6 @@ fun SongEditScreen(
                         Modifier
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
-                    // No usar restricciones en el tipo de teclado
                     keyboardOptions = KeyboardOptions.Default,
                     singleLine = true,
                 )
@@ -127,7 +129,7 @@ fun SongEditScreen(
                 OutlinedTextField(
                     value = artist,
                     onValueChange = { artist = it },
-                    label = { Text("Artista") },
+                    label = { Text("Autor") },
                     modifier =
                         Modifier
                             .fillMaxWidth()
@@ -157,7 +159,8 @@ fun SongEditScreen(
             item {
                 Button(
                     onClick = {
-                        verses = verses + Verse()
+                        // El modelo Verse requiere el parámetro 'text', se inicializa con null.
+                        verses = verses + Verse(text = null)
                     },
                     modifier =
                         Modifier

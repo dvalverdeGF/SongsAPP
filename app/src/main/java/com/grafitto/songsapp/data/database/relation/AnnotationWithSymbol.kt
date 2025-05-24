@@ -2,14 +2,14 @@ package com.grafitto.songsapp.data.database.relation
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.grafitto.songsapp.data.database.entity.Annotation // Asegúrate de que Annotation.kt exista y tenga 'annotationSymbolId'
-import com.grafitto.songsapp.data.database.entity.AnnotationSymbol // Asegúrate de que AnnotationSymbol.kt exista
+import com.grafitto.songsapp.data.database.entity.AnnotationSymbol
+import com.grafitto.songsapp.data.database.entity.LyricAnnotation
 
 data class AnnotationWithSymbol(
-    @Embedded val annotation: Annotation,
+    @Embedded val annotation: LyricAnnotation,
     @Relation(
-        parentColumn = "annotationSymbolId", // Campo FK en Annotation.kt
-        entityColumn = "id", // Campo PK en AnnotationSymbol.kt
+        parentColumn = "symbol_id",
+        entityColumn = "id",
     )
     val symbol: AnnotationSymbol,
 )

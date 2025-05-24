@@ -1,7 +1,9 @@
 package com.grafitto.songsapp.data.database.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -10,42 +12,54 @@ import androidx.room.PrimaryKey
         ForeignKey(
             entity = ChordRoot::class,
             parentColumns = ["id"],
-            childColumns = ["rootId"],
+            childColumns = ["root_id"],
             onDelete = ForeignKey.CASCADE,
         ),
         ForeignKey(
             entity = ChordAccidental::class,
             parentColumns = ["id"],
-            childColumns = ["accidentalId"],
+            childColumns = ["accidental_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
         ForeignKey(
             entity = ChordQuality::class,
             parentColumns = ["id"],
-            childColumns = ["qualityId"],
+            childColumns = ["quality_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
         ForeignKey(
             entity = ChordExtension::class,
             parentColumns = ["id"],
-            childColumns = ["extensionId"],
+            childColumns = ["extension_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
         ForeignKey(
             entity = ChordModifier::class,
             parentColumns = ["id"],
-            childColumns = ["modifierId"],
+            childColumns = ["modifier_id"],
             onDelete = ForeignKey.SET_NULL,
         ),
+    ],
+    indices = [
+        Index(value = ["root_id"]),
+        Index(value = ["accidental_id"]),
+        Index(value = ["quality_id"]),
+        Index(value = ["extension_id"]),
+        Index(value = ["modifier_id"]),
     ],
 )
 data class ChordVariant(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val rootId: Long, // Clave foránea a ChordRoot
-    val accidentalId: Long? = null, // Clave foránea a ChordAccidental
-    val qualityId: Long? = null, // Clave foránea a ChordQuality
-    val extensionId: Long? = null, // Clave foránea a ChordExtension
-    val modifierId: Long? = null, // Clave foránea a ChordModifier
-    val name: String, // Ejemplo: "C#m7add9" (Este campo almacenaría el nombre completo)
-    val nameLatin: String, // Ejemplo: "Do# menor séptima con novena añadida" (Este campo almacenaría el nombre latino completo)
+    @ColumnInfo(name = "root_id")
+    val rootId: Long,
+    @ColumnInfo(name = "accidental_id")
+    val accidentalId: Long? = null,
+    @ColumnInfo(name = "quality_id")
+    val qualityId: Long? = null,
+    @ColumnInfo(name = "extension_id")
+    val extensionId: Long? = null,
+    @ColumnInfo(name = "modifier_id")
+    val modifierId: Long? = null,
+    val name: String,
+    val nameLatin: String,
 )

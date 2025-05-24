@@ -10,13 +10,13 @@ import com.grafitto.songsapp.data.database.entity.SongCategory
 data class CategoryWithSongs(
     @Embedded val category: Category,
     @Relation(
-        parentColumn = "id", // Clave primaria de Category
-        entityColumn = "id", // Clave primaria de Song
+        parentColumn = "id", // Clave primaria en Category
+        entityColumn = "id", // Clave primaria en Song
         associateBy =
             Junction(
                 value = SongCategory::class,
-                parentColumn = "category_id", // Clave foránea en SongCategory que referencia a Category
-                entityColumn = "song_id", // Clave foránea en SongCategory que referencia a Song
+                parentColumn = "category_id", // FK en SongCategory que referencia Category
+                entityColumn = "song_id", // FK en SongCategory que referencia Song
             ),
     )
     val songs: List<Song>,

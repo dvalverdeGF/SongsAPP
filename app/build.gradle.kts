@@ -55,7 +55,7 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.dagger.compiler)
+    // ksp(libs.dagger.compiler) // Comentado porque no se está usando Dagger actualmente
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
