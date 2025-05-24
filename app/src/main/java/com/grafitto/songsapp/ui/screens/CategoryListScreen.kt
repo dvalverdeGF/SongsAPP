@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,10 +13,11 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.grafitto.songsapp.data.database.entity.Category
 import com.grafitto.songsapp.ui.viewmodel.CategoryViewModel
-import kotlinx.coroutines.launch
 
 @Suppress("ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,39 +36,23 @@ fun CategoryListScreen(
     val filteredCategories = categories.filter { it.parentId == parentId }
     val parentCategory = categories.find { it.id == parentId }
 
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val isTablet = screenWidthDp >= 600
+
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(parentCategory?.name ?: "Categorías", color = MaterialTheme.colorScheme.onPrimary) },
-                navigationIcon = {
-                    // Solo mostrar el icono de menú si drawerState no es null (modo drawer antiguo)
-                    if (drawerState != null) {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(
-                                Icons.Default.Menu,
-                                contentDescription = "Menú",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    if (onBack != null) {
-                        IconButton(onClick = { onBack() }) {
-                            Icon(
-                                Icons.Default.ArrowBack,
-                                contentDescription = "Atrás",
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                            )
-                        }
-                    }
-                },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-            )
+            if (isTablet) {
+                // Solo mostrar TopAppBar en tablet/escritorio
+                TopAppBar(
+                    title = { Text(parentCategory?.name ?: "Categorías", style = MaterialTheme.typography.titleLarge) },
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -84,44 +67,76 @@ fun CategoryListScreen(
                 )
             }
         },
+        containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        if (filteredCategories.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-                Text(
-                    text = "No hay categorías",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.align(Alignment.Center),
-                )
-            }
-        } else {
-            LazyColumn(modifier = Modifier.padding(padding).fillMaxSize()) {
-                items(filteredCategories) { category ->
-                    var expanded by remember { mutableStateOf(false) }
-                    Column {
+        Surface(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+            color = MaterialTheme.colorScheme.background,
+        ) {
+            if (filteredCategories.isEmpty()) {
+                // Imagen ilustrativa y mensaje amigable
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(android.R.drawable.ic_menu_gallery),
+                        contentDescription = null,
+                        modifier = Modifier.size(96.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "No hay categorías aún",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Toca el botón + para crear tu primera categoría",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 0.dp, vertical = 0.dp),
+                    verticalArrangement = Arrangement.Top,
+                ) {
+                    items(filteredCategories) { category ->
+                        var expanded by remember { mutableStateOf(false) }
                         Row(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .clickable { onNavigateToChildren(category) },
+                                    .clickable { onNavigateToChildren(category) }
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 category.name ?: "(Sin nombre)",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.weight(1f),
-                                style = MaterialTheme.typography.bodyLarge,
                             )
                             Box {
                                 IconButton(onClick = { expanded = true }) {
                                     Icon(
                                         Icons.Default.MoreVert,
                                         contentDescription = "Opciones",
-                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        tint = MaterialTheme.colorScheme.onSurface,
                                     )
                                 }
                                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                                     DropdownMenuItem(
-                                        text = { Text("Editar", color = MaterialTheme.colorScheme.onPrimary) },
+                                        text = { Text("Editar", color = MaterialTheme.colorScheme.onSurface) },
                                         onClick = {
                                             expanded = false
                                             onEditCategory(category)

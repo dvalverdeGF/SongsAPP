@@ -11,46 +11,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val AppPrimaryColor = Color(0xFF1E6866)
-private val AppOnPrimaryColor = Color.White
-
-private val DarkColorScheme =
-    darkColorScheme(
-        primary = AppPrimaryColor,
-        onPrimary = AppOnPrimaryColor,
-        secondary = PurpleGrey80,
-        tertiary = Pink80,
-    )
-
-private val LightColorScheme =
-    lightColorScheme(
-        primary = AppPrimaryColor,
-        onPrimary = AppOnPrimaryColor,
-        secondary = PurpleGrey40,
-        tertiary = Pink40,
-        background = Color.White,
-        surface = Color.White,
-    )
-
 @Suppress("ktlint:standard:function-naming")
 @Composable
 fun SongsAPPTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = true, // SIEMPRE colores dinámicos para look Google nativo
     content: @Composable () -> Unit,
 ) {
+    val context = LocalContext.current
     val colorScheme =
         when {
             dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                val context = LocalContext.current
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             }
-
-            darkTheme -> DarkColorScheme
-            else -> LightColorScheme
+            darkTheme -> darkColorScheme()
+            else -> lightColorScheme()
         }
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
@@ -63,10 +39,10 @@ fun SongsAPPTheme(
 fun AppTheme(content: @Composable () -> Unit) {
     val colorScheme =
         MaterialTheme.colorScheme.copy(
-            primary = AppPrimaryColor,
-            onPrimary = AppOnPrimaryColor,
-            primaryContainer = AppPrimaryColor,
-            onPrimaryContainer = AppOnPrimaryColor,
+            primary = Color(0xFF1E6866),
+            onPrimary = Color.White,
+            primaryContainer = Color(0xFF1E6866),
+            onPrimaryContainer = Color.White,
         )
     MaterialTheme(
         colorScheme = colorScheme,

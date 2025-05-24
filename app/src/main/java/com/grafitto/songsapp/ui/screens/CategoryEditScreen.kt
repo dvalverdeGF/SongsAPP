@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -42,6 +43,7 @@ fun CategoryEditScreen(
                 title = {
                     Text(
                         if (isEdit) "Editar Categoría" else "Nueva Categoría",
+                        style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onPrimary,
                     )
                 },
@@ -83,52 +85,64 @@ fun CategoryEditScreen(
                 Icon(Icons.Default.Check, contentDescription = "Guardar", tint = MaterialTheme.colorScheme.onPrimary)
             }
         },
+        containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
-        Column(
+        Box(
             modifier =
                 Modifier
+                    .fillMaxSize()
                     .padding(padding)
-                    .padding(16.dp)
-                    .fillMaxWidth(),
+                    .padding(16.dp),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nombre") },
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = true,
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            // Dropdown para seleccionar categoría padre
-            var expanded by remember { mutableStateOf(false) }
-            val parentCategory = allCategories.find { it.id == parentId }
-            OutlinedButton(
-                onClick = { expanded = true },
-                modifier = Modifier.fillMaxWidth(),
-                colors =
-                    ButtonDefaults.outlinedButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.primary,
-                    ),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
-                Text(parentCategory?.name ?: "Sin categoría padre", color = MaterialTheme.colorScheme.primary)
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                DropdownMenuItem(
-                    text = { Text("Sin categoría padre", color = MaterialTheme.colorScheme.onPrimary) },
-                    onClick = {
-                        parentId = null
-                        expanded = false
-                    },
-                )
-                allCategories.filter { it.id != categoryToEdit?.id }.forEach { cat ->
-                    DropdownMenuItem(
-                        text = { Text(cat.name ?: "(Sin nombre)", color = MaterialTheme.colorScheme.onPrimary) },
-                        onClick = {
-                            parentId = cat.id
-                            expanded = false
-                        },
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                ) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nombre") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = true,
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Dropdown para seleccionar categoría padre
+                    var expanded by remember { mutableStateOf(false) }
+                    val parentCategory = allCategories.find { it.id == parentId }
+                    OutlinedButton(
+                        onClick = { expanded = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors =
+                            ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.primary,
+                            ),
+                    ) {
+                        Text(parentCategory?.name ?: "Sin categoría padre", color = MaterialTheme.colorScheme.primary)
+                    }
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                        DropdownMenuItem(
+                            text = { Text("Sin categoría padre", color = MaterialTheme.colorScheme.onPrimary) },
+                            onClick = {
+                                parentId = null
+                                expanded = false
+                            },
+                        )
+                        allCategories.filter { it.id != categoryToEdit?.id }.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text(cat.name ?: "(Sin nombre)", color = MaterialTheme.colorScheme.onPrimary) },
+                                onClick = {
+                                    parentId = cat.id
+                                    expanded = false
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }
