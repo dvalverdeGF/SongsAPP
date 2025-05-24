@@ -67,7 +67,11 @@ fun AppNavigation(repository: SongsRepository) {
             startDestination = "main",
         ) {
             composable("main") {
-                MainScreen(navController = navController, repository = repository, drawerState = drawerState)
+                MainScreen(
+                    navController = navController,
+                    repository = repository,
+                    drawerState = drawerState,
+                )
             }
             composable("categories") {
                 val context = androidx.compose.ui.platform.LocalContext.current
@@ -78,11 +82,36 @@ fun AppNavigation(repository: SongsRepository) {
                         factory = CategoryViewModelFactory(categoryDao),
                     )
                 CategoryListScreen(
-                    navController = navController,
                     viewModel = categoryViewModel,
-                    onAddCategory = { navController.navigate("category_edit") },
+                    onAddCategory = { pid -> navController.navigate("category_edit?parentId=$pid") },
                     onEditCategory = { navController.navigate("category_edit/${it.id}") },
-                    onDeleteCategory = { categoryViewModel.deleteCategory(it) },
+                    onNavigateToChildren = { navController.navigate("categories/${it.id}") },
+                    onBack = null,
+                    parentId = null,
+                    drawerState = drawerState,
+                )
+            }
+            composable("categories/{parentId}") { backStackEntry ->
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val db = SongsDatabase.getDatabase(context)
+                val categoryDao = db.categoryDao()
+                val categoryViewModel: CategoryViewModel =
+                    viewModel(
+                        factory = CategoryViewModelFactory(categoryDao),
+                    )
+                val parentId = backStackEntry.arguments?.getString("parentId")?.toLongOrNull()
+                CategoryListScreen(
+                    viewModel = categoryViewModel,
+                    onAddCategory = { pid -> navController.navigate("category_edit?parentId=$pid") },
+                    onEditCategory = { navController.navigate("category_edit/${it.id}") },
+                    onNavigateToChildren = { navController.navigate("categories/${it.id}") },
+                    onBack =
+                        if (parentId != null) {
+                            { navController.popBackStack() }
+                        } else {
+                            null
+                        },
+                    parentId = parentId,
                     drawerState = drawerState,
                 )
             }
@@ -118,6 +147,23 @@ fun AppNavigation(repository: SongsRepository) {
                     viewModel = categoryViewModel,
                     categoryToEdit = category,
                     drawerState = drawerState,
+                )
+            }
+            composable("category_edit?parentId={parentId}") { backStackEntry ->
+                val context = androidx.compose.ui.platform.LocalContext.current
+                val db = SongsDatabase.getDatabase(context)
+                val categoryDao = db.categoryDao()
+                val categoryViewModel: CategoryViewModel =
+                    viewModel(
+                        factory = CategoryViewModelFactory(categoryDao),
+                    )
+                val parentId = backStackEntry.arguments?.getString("parentId")?.toLongOrNull()
+                com.grafitto.songsapp.ui.screens.CategoryEditScreen(
+                    navController = navController,
+                    viewModel = categoryViewModel,
+                    categoryToEdit = null,
+                    drawerState = drawerState,
+                    defaultParentId = parentId,
                 )
             }
         }

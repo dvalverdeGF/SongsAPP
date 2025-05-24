@@ -22,17 +22,18 @@ fun CategoryEditScreen(
     viewModel: CategoryViewModel,
     categoryToEdit: Category? = null,
     drawerState: DrawerState,
+    defaultParentId: Long? = null,
 ) {
     var name by remember { mutableStateOf(categoryToEdit?.name ?: "") }
     val isEdit = categoryToEdit != null
     val allCategories by viewModel.categories.observeAsState(emptyList())
-    var parentId by remember { mutableStateOf(categoryToEdit?.parentId) }
+    var parentId by remember { mutableStateOf(if (isEdit) categoryToEdit?.parentId else defaultParentId) }
     val scope = rememberCoroutineScope()
 
     // Sincronizar el estado cuando categoryToEdit cambie
     LaunchedEffect(categoryToEdit) {
         name = categoryToEdit?.name ?: ""
-        parentId = categoryToEdit?.parentId
+        parentId = if (isEdit) categoryToEdit?.parentId else defaultParentId
     }
 
     Scaffold(
