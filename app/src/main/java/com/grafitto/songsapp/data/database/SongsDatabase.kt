@@ -81,6 +81,7 @@ abstract class SongsDatabase : RoomDatabase() {
                             SongsDatabase::class.java,
                             "songs_database",
                         ).addMigrations(MIGRATION_1_2)
+                        .fallbackToDestructiveMigration(true)
                         .build()
                 INSTANCE = instance
                 instance

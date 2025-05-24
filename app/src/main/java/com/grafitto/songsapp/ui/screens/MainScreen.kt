@@ -47,6 +47,16 @@ fun MainScreen(
             ModalDrawerSheet {
                 Text("Menú", modifier = Modifier.padding(16.dp))
                 NavigationDrawerItem(
+                    label = { Text("Categorías") },
+                    selected = false,
+                    onClick = {
+                        scope.launch {
+                            drawerState.close()
+                        }
+                        navController.navigate("categories")
+                    },
+                )
+                NavigationDrawerItem(
                     label = { Text("Opción 1") },
                     selected = false,
                     onClick = {
