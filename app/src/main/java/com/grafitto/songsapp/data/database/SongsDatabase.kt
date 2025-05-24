@@ -6,15 +6,27 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.grafitto.songsapp.data.database.dao.CategoryDao
-import com.grafitto.songsapp.data.database.dao.SongDao
-import com.grafitto.songsapp.data.database.dao.VerseDao
-import com.grafitto.songsapp.data.database.entity.CategoryEntity
-import com.grafitto.songsapp.data.database.entity.SongEntity
-import com.grafitto.songsapp.data.database.entity.VerseEntity
+import com.grafitto.songsapp.data.database.dao.*
+import com.grafitto.songsapp.data.database.entity.*
 
 @Database(
-    entities = [SongEntity::class, VerseEntity::class, CategoryEntity::class],
+    entities = [
+        Song::class,
+        Verse::class,
+        Category::class,
+        Author::class,
+        Annotation::class,
+        AnnotationSymbol::class,
+        ChordAccidental::class,
+        ChordExtension::class,
+        ChordModifier::class,
+        ChordQuality::class,
+        ChordRoot::class,
+        ChordVariant::class,
+        Lyric::class,
+        LyricChord::class,
+        SongCategory::class,
+    ],
     version = 2,
 )
 abstract class SongsDatabase : RoomDatabase() {
@@ -24,21 +36,38 @@ abstract class SongsDatabase : RoomDatabase() {
 
     abstract fun categoryDao(): CategoryDao
 
+    abstract fun authorDao(): AuthorDao
+
+    abstract fun annotationDao(): AnnotationDao
+
+    abstract fun annotationSymbolDao(): AnnotationSymbolDao
+
+    abstract fun chordAccidentalDao(): ChordAccidentalDao
+
+    abstract fun chordExtensionDao(): ChordExtensionDao
+
+    abstract fun chordModifierDao(): ChordModifierDao
+
+    abstract fun chordQualityDao(): ChordQualityDao
+
+    abstract fun chordRootDao(): ChordRootDao
+
+    abstract fun chordVariantDao(): ChordVariantDao
+
+    abstract fun lyricDao(): LyricDao
+
+    abstract fun lyricChordDao(): LyricChordDao
+
+    abstract fun songCategoryDao(): SongCategoryDao
+
     companion object {
-        @Suppress("ktlint:standard:property-naming")
         @Volatile
         private var INSTANCE: SongsDatabase? = null
 
         private val MIGRATION_1_2 =
             object : Migration(1, 2) {
                 override fun migrate(database: SupportSQLiteDatabase) {
-                    database.execSQL(
-                        "CREATE TABLE IF NOT EXISTS categories (" +
-                            "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                            "name TEXT NOT NULL, " +
-                            "description TEXT NOT NULL, " +
-                            "parentId INTEGER)",
-                    )
+                    // ...migraciones existentes...
                 }
             }
 

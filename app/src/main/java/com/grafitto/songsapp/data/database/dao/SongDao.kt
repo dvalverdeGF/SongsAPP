@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.grafitto.songsapp.data.database.entity.SongEntity
-import com.grafitto.songsapp.data.database.relation.SongWithVerses
 import kotlinx.coroutines.flow.Flow
 
 @Dao
