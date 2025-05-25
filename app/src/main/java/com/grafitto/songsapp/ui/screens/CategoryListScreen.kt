@@ -62,9 +62,9 @@ fun CategoryListScreen(
         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-            parentCategory?.let {
+            if (parentCategory != null) {
                 Text(
-                    text = viewModel.getCategoryPath(it, categories),
+                    text = viewModel.getCategoryPath(parentCategory, categories),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier =
@@ -72,6 +72,23 @@ fun CategoryListScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp),
                     textAlign = TextAlign.End,
+                )
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    thickness = 1.dp,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            } else {
+                // Mostrar título "Categorías" cuando no hay parentCategory (raíz)
+                Text(
+                    text = "Categorías",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                    textAlign = TextAlign.End, // Alineado al inicio para el título principal
                 )
                 HorizontalDivider(
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
