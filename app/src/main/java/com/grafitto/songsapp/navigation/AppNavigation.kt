@@ -10,7 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CloudUpload // Nueva importación
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
@@ -172,14 +172,32 @@ fun getDynamicNavItems(
         }
     }
 
+    val isCategoriesSectionActive =
+        currentRoute != null &&
+            (
+                currentRoute == "categories" ||
+                    currentRoute.startsWith("categories/") ||
+                    currentRoute.startsWith("category_edit")
+            )
+
+    val categoriesNavItem =
+        NavItemData(
+            route = if (isCategoriesSectionActive && currentRoute != null) currentRoute else "categories",
+            icon = Icons.AutoMirrored.Filled.List,
+            label = "Categorías",
+            onClick = defaultNavOnClick("categories"),
+        )
+
     return when {
         currentRoute == "categories" ||
-            currentRoute?.startsWith("categories/") == true &&
-            currentRoute != "category_edit" &&
-            !currentRoute.startsWith("category_edit/") -> {
+            (
+                currentRoute?.startsWith("categories/") == true &&
+                    currentRoute != "category_edit" &&
+                    !currentRoute.startsWith("category_edit/")
+            ) -> {
             val items = mutableListOf<NavItemData>()
             items.add(NavItemData("main", Icons.Default.Home, "Inicio", defaultNavOnClick("main")))
-            items.add(NavItemData("categories", Icons.AutoMirrored.Filled.List, "Categorías", defaultNavOnClick("categories")))
+            items.add(categoriesNavItem)
             items.add(
                 NavItemData("category_create", Icons.Default.Add, "Crear") {
                     val parentIdArg =
@@ -203,14 +221,18 @@ fun getDynamicNavItems(
         currentRoute?.startsWith("category_edit") == true -> {
             listOfNotNull(
                 NavItemData("main", Icons.Default.Home, "Inicio", defaultNavOnClick("main")),
-                NavItemData("categories_nav", Icons.AutoMirrored.Filled.List, "Categorías", defaultNavOnClick("categories")),
-                categoryViewModel?.let { vm -> NavItemData("category_save", Icons.Filled.CloudUpload, "Guardar") { vm.requestSave() } }, // Icono cambiado
+                categoriesNavItem,
+                categoryViewModel?.let { vm -> NavItemData("category_save", Icons.Filled.CloudUpload, "Guardar") { vm.requestSave() } },
                 NavItemData("back", Icons.AutoMirrored.Filled.ArrowBack, "Atrás") { navController.popBackStack() },
             )
         }
         else -> {
-            baseNavItems.map { (route, icon, label) ->
-                NavItemData(route, icon, label, defaultNavOnClick(route))
+            baseNavItems.map { (baseRoute, icon, label) ->
+                if (baseRoute == "categories") {
+                    categoriesNavItem
+                } else {
+                    NavItemData(baseRoute, icon, label, defaultNavOnClick(baseRoute))
+                }
             }
         }
     }

@@ -30,6 +30,7 @@ fun CategoryListScreen(
     parentId: Long? = null,
 ) {
     val categories by viewModel.categories.observeAsState(emptyList())
+    val songsByCategory by viewModel.songsByCategoryCount.observeAsState(emptyMap())
     val scope = rememberCoroutineScope()
     val filteredCategories = categories.filter { it.parentId == parentId }
     val parentCategory = categories.find { it.id == parentId }
@@ -90,12 +91,22 @@ fun CategoryListScreen(
                                     .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Text(
-                                category.name ?: "(Sin nombre)",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.weight(1f),
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    category.name ?: "(Sin nombre)",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                                Text(
+                                    text = viewModel.getCategoryPath(category, categories),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            val songCount = songsByCategory[category.id] ?: 0
+                            if (songCount > 0) {
+                                Badge(modifier = Modifier.padding(start = 8.dp)) { Text("$songCount") }
+                            }
                             Box {
                                 IconButton(onClick = { expanded = true }) {
                                     Icon(

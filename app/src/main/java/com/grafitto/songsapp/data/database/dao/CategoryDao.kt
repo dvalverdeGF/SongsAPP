@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
@@ -40,4 +41,14 @@ interface CategoryDao {
     @Transaction
     @Query("SELECT * FROM categories WHERE id = :categoryId")
     fun getCategoryWithSongsById(categoryId: Long): LiveData<CategoryWithSongs>
+
+    @Query("SELECT category_id, COUNT(song_id) as count FROM song_categories GROUP BY category_id")
+    fun getSongsCountByCategory(): LiveData<
+        Map<
+            @MapColumn("category_id")
+            Long,
+            @MapColumn("count")
+            Int,
+        >,
+    >
 }

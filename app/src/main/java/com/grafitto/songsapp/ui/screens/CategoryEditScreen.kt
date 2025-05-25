@@ -33,6 +33,49 @@ import com.grafitto.songsapp.data.database.entity.Category
 import com.grafitto.songsapp.ui.viewmodel.CategoryViewModel
 import kotlinx.coroutines.flow.collectLatest
 
+// Helper function to check if 'category' is a descendant of 'ancestor'
+// This prevents selecting a category's own descendant as its parent.
+private fun isDescendant(
+    category: Category,
+    ancestor: Category?,
+    allCategories: List<Category>,
+): Boolean {
+    if (ancestor == null) return false
+    var currentParentId = category.parentId
+    while (currentParentId != null) {
+        if (currentParentId == ancestor.id) {
+            return true
+        }
+        val parentCategory = allCategories.find { it.id == currentParentId } ?: return false // Should not happen with consistent data
+        currentParentId = parentCategory.parentId
+    }
+    return false
+}
+
+// Helper function to get the hierarchical path string for a category
+private fun getFormattedCategoryPath(
+    category: Category?,
+    allCategories: List<Category>,
+    defaultText: String = "Sin categoría padre",
+): String {
+    if (category == null) return defaultText
+
+    val path = mutableListOf<String>()
+    var current: Category? = category
+    while (current != null) {
+        path.add(0, current.name ?: "(Sin nombre)")
+        if (current.parentId == null) break
+        val parent = allCategories.find { it.id == current.parentId }
+        // Basic cycle detection or very deep path
+        if (parent == current || path.size > 10) { // Safety break
+            path.add(0, "...")
+            break
+        }
+        current = parent
+    }
+    return path.joinToString(" > ")
+}
+
 @Suppress("ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,19 +160,25 @@ fun CategoryEditScreen(
                                 contentColor = MaterialTheme.colorScheme.primary,
                             ),
                     ) {
-                        Text(parentCategory?.name ?: "Sin categoría padre", color = MaterialTheme.colorScheme.primary)
+                        Text(getFormattedCategoryPath(parentCategory, allCategories), color = MaterialTheme.colorScheme.primary)
                     }
-                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.fillMaxWidth()) {
                         DropdownMenuItem(
-                            text = { Text("Sin categoría padre", color = MaterialTheme.colorScheme.onSurface) },
+                            text = { Text(getFormattedCategoryPath(null, allCategories), color = MaterialTheme.colorScheme.onSurface) },
                             onClick = {
                                 parentId = null
                                 expanded = false
                             },
                         )
-                        allCategories.filter { it.id != categoryToEdit?.id }.forEach { cat ->
+                        val selectableCategories =
+                            allCategories.filter { cat ->
+                                cat.id != categoryToEdit?.id &&
+                                    // Cannot select itself
+                                    !isDescendant(cat, categoryToEdit, allCategories) // 'cat' cannot be a descendant of the category being edited
+                            }
+                        selectableCategories.forEach { cat ->
                             DropdownMenuItem(
-                                text = { Text(cat.name ?: "(Sin nombre)", color = MaterialTheme.colorScheme.onSurface) },
+                                text = { Text(getFormattedCategoryPath(cat, allCategories), color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     parentId = cat.id
                                     expanded = false

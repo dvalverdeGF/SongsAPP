@@ -14,6 +14,7 @@ class CategoryViewModel(
     private val categoryDao: CategoryDao,
 ) : ViewModel() {
     val categories: LiveData<List<Category>> = categoryDao.getAllCategories()
+    val songsByCategoryCount: LiveData<Map<Long, Int>> = categoryDao.getSongsCountByCategory()
 
     @Suppress("ktlint:standard:backing-property-naming")
     // Channel and Flow for save requests
@@ -64,6 +65,24 @@ class CategoryViewModel(
         viewModelScope.launch {
             categoryDao.deleteCategory(category)
         }
+    }
+
+    fun getCategoryPath(
+        category: Category,
+        allCategories: List<Category>,
+    ): String {
+        val path = mutableListOf<String>()
+        var current: Category? = category
+        while (current != null) {
+            path.add(0, current.name ?: "(Sin nombre)")
+            if (current.parentId == null) break
+            current = allCategories.find { it.id == current.parentId }
+            if (path.size > 5) { // Evitar rutas excesivamente largas o ciclos
+                path.add(0, "...")
+                break
+            }
+        }
+        return path.joinToString(" > ")
     }
 }
 
