@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,17 +19,15 @@ import androidx.compose.ui.unit.dp
 import com.grafitto.songsapp.data.database.entity.Category
 import com.grafitto.songsapp.ui.viewmodel.CategoryViewModel
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Suppress("ktlint:standard:function-naming")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryListScreen(
     viewModel: CategoryViewModel,
-    onAddCategory: (Long?) -> Unit,
     onEditCategory: (Category) -> Unit,
     onNavigateToChildren: (Category) -> Unit,
-    onBack: (() -> Unit)? = null,
     parentId: Long? = null,
-    drawerState: DrawerState?,
 ) {
     val categories by viewModel.categories.observeAsState(emptyList())
     val scope = rememberCoroutineScope()
@@ -37,22 +36,8 @@ fun CategoryListScreen(
 
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
-    val isTablet = screenWidthDp >= 600
 
     Scaffold(
-        topBar = {
-            if (isTablet) {
-                // Solo mostrar TopAppBar en tablet/escritorio
-                TopAppBar(
-                    title = { Text(parentCategory?.name ?: "Categorías", style = MaterialTheme.typography.titleLarge) },
-                    colors =
-                        TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                        ),
-                )
-            }
-        },
         containerColor = MaterialTheme.colorScheme.background,
     ) { padding ->
         Surface(
@@ -63,7 +48,6 @@ fun CategoryListScreen(
             color = MaterialTheme.colorScheme.background,
         ) {
             if (filteredCategories.isEmpty()) {
-                // Imagen ilustrativa y mensaje amigable
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Center,

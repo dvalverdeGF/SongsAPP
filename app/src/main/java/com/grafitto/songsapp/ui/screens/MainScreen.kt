@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DrawerState
+import androidx.compose.material.icons.filled.List // For Categories icon/button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,10 +33,8 @@ import kotlinx.coroutines.flow.catch
 fun MainScreen(
     navController: NavController,
     repository: SongsRepository,
-    drawerState: DrawerState?, // Puede ser null, ya no se usa
 ) {
     Scaffold(
-        topBar = {}, // Sin header fijo en móvil
         containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
