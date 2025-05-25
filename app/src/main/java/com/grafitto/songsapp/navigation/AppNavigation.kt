@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
@@ -30,36 +27,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.grafitto.songsapp.data.database.SongsDatabase
 import com.grafitto.songsapp.data.repository.SongsRepository
-import com.grafitto.songsapp.ui.screens.CategoryListScreen
-import com.grafitto.songsapp.ui.screens.MainScreen
 import com.grafitto.songsapp.ui.theme.SongsAPPTheme
 import com.grafitto.songsapp.ui.viewmodel.CategoryViewModel
 import com.grafitto.songsapp.ui.viewmodel.CategoryViewModelFactory
 
-data class NavItemData(
-    val route: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val label: String,
-    val onClick: () -> Unit,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("ConfigurationScreenWidthHeight")
-@Suppress("ktlint:standard:function-naming")
+@Suppress("ktlint:standard:function-naming", "detekt.FunctionNaming", "detekt.LongMethod", "detekt.MagicNumber")
 @Composable
 fun AppNavigation(repository: SongsRepository) {
     SongsAPPTheme(dynamicColor = false) {
@@ -133,6 +117,7 @@ fun AppNavigation(repository: SongsRepository) {
                                     .WindowInsets(0, 0, 0, 0),
                             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         ) { innerPadding ->
+                            // Llamada directa a la función importada
                             AppNavHost(navController, repository, Modifier.padding(innerPadding), categoryViewModelFromAppNavigation)
                         }
                     }
@@ -168,193 +153,10 @@ fun AppNavigation(repository: SongsRepository) {
                         }
                     },
                 ) { innerPadding ->
+                    // Llamada directa a la función importada
                     AppNavHost(navController, repository, Modifier.padding(innerPadding), categoryViewModelFromAppNavigation)
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun getDynamicNavItems(
-    navController: NavHostController,
-    currentRoute: String?,
-    baseNavItems: List<Triple<String, androidx.compose.ui.graphics.vector.ImageVector, String>>,
-    categoryViewModel: CategoryViewModel?,
-): List<NavItemData> {
-    val defaultNavOnClick: (String) -> () -> Unit = { route ->
-        {
-            navController.navigate(route) {
-                popUpTo(navController.graph.startDestinationId) { inclusive = false }
-                launchSingleTop = true
-            }
-        }
-    }
-
-    val isCategoriesSectionActive =
-        currentRoute != null &&
-            (
-                currentRoute == "categories" ||
-                    currentRoute.startsWith("categories/") ||
-                    currentRoute.startsWith("category_edit")
-            )
-
-    val categoriesNavItem =
-        NavItemData(
-            route = if (isCategoriesSectionActive && currentRoute != null) currentRoute else "categories",
-            icon = Icons.AutoMirrored.Filled.List,
-            label = "Categorías",
-            onClick = defaultNavOnClick("categories"),
-        )
-
-    return when {
-        currentRoute == "categories" ||
-            (
-                currentRoute?.startsWith("categories/") == true &&
-                    currentRoute != "category_edit" &&
-                    !currentRoute.startsWith("category_edit/")
-            ) -> {
-            val items = mutableListOf<NavItemData>()
-            items.add(NavItemData("main", Icons.Default.Home, "Inicio", defaultNavOnClick("main")))
-            items.add(categoriesNavItem)
-            items.add(
-                NavItemData("category_create", Icons.Default.Add, "Crear") {
-                    val parentIdArg =
-                        if (currentRoute.startsWith("categories/")) {
-                            navController.currentBackStackEntry?.arguments?.getString("parentId")
-                        } else {
-                            null
-                        }
-                    if (parentIdArg != null) {
-                        navController.navigate("category_edit?parentId=$parentIdArg")
-                    } else {
-                        navController.navigate("category_edit")
-                    }
-                },
-            )
-            if (currentRoute.startsWith("categories/") && navController.previousBackStackEntry != null) {
-                items.add(NavItemData("back", Icons.AutoMirrored.Filled.ArrowBack, "Atrás") { navController.popBackStack() })
-            }
-            items
-        }
-        currentRoute?.startsWith("category_edit") == true -> {
-            listOfNotNull(
-                NavItemData("main", Icons.Default.Home, "Inicio", defaultNavOnClick("main")),
-                categoriesNavItem,
-                categoryViewModel?.let { vm -> NavItemData("category_save", Icons.Filled.CloudUpload, "Guardar") { vm.requestSave() } },
-                NavItemData("back", Icons.AutoMirrored.Filled.ArrowBack, "Atrás") { navController.popBackStack() },
-            )
-        }
-        else -> {
-            baseNavItems.map { (baseRoute, icon, label) ->
-                if (baseRoute == "categories") {
-                    categoriesNavItem
-                } else {
-                    NavItemData(baseRoute, icon, label, defaultNavOnClick(baseRoute))
-                }
-            }
-        }
-    }
-}
-
-@Suppress("ktlint:standard:function-naming")
-@Composable
-fun AppNavHost(
-    navController: NavHostController,
-    repository: SongsRepository,
-    modifier: Modifier,
-    categoryViewModelFromParent: CategoryViewModel?,
-) {
-    NavHost(
-        navController = navController,
-        startDestination = "main",
-        modifier = modifier,
-    ) {
-        composable("main") {
-            MainScreen(
-                navController = navController,
-                repository = repository,
-            )
-        }
-        composable("songs") {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                    Text("Pantalla de Canciones", style = MaterialTheme.typography.headlineMedium)
-                }
-            }
-        }
-        composable("categories") {
-            val context = LocalContext.current
-            val db = SongsDatabase.getDatabase(context)
-            val categoryDao = db.categoryDao()
-            val categoryViewModel: CategoryViewModel = viewModel(factory = CategoryViewModelFactory(categoryDao))
-            CategoryListScreen(
-                viewModel = categoryViewModel,
-                onEditCategory = { cat -> navController.navigate("category_edit/${cat.id}") },
-                onNavigateToChildren = { cat -> navController.navigate("categories/${cat.id}") },
-                parentId = null,
-            )
-        }
-        composable("repertoires") {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                    Text("Pantalla de Repertorios", style = MaterialTheme.typography.headlineMedium)
-                }
-            }
-        }
-        composable("settings") {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
-                    Text("Pantalla de Configuración", style = MaterialTheme.typography.headlineMedium)
-                }
-            }
-        }
-        composable("categories/{parentId}") { backStackEntry ->
-            val context = LocalContext.current
-            val db = SongsDatabase.getDatabase(context)
-            val categoryDao = db.categoryDao()
-            val categoryViewModel: CategoryViewModel = viewModel(factory = CategoryViewModelFactory(categoryDao))
-            val parentId = backStackEntry.arguments?.getString("parentId")?.toLongOrNull()
-            CategoryListScreen(
-                viewModel = categoryViewModel,
-                onEditCategory = { cat -> navController.navigate("category_edit/${cat.id}") },
-                onNavigateToChildren = { cat -> navController.navigate("categories/${cat.id}") },
-                parentId = parentId,
-            )
-        }
-        composable("category_edit") {
-            requireNotNull(categoryViewModelFromParent) { "CategoryViewModel must be provided for category_edit route" }
-            com.grafitto.songsapp.ui.screens.CategoryEditScreen(
-                navController = navController,
-                viewModel = categoryViewModelFromParent,
-                categoryToEdit = null,
-                defaultParentId = null,
-            )
-        }
-        composable("category_edit/{categoryId}") { backStackEntry ->
-            requireNotNull(categoryViewModelFromParent) { "CategoryViewModel must be provided for category_edit route" }
-
-            val categoryId = backStackEntry.arguments?.getString("categoryId")?.toLongOrNull()
-            val categoriesState = categoryViewModelFromParent.categories.observeAsState(emptyList())
-            val categories = categoriesState.value
-            val category = categories.find { it.id == categoryId }
-            com.grafitto.songsapp.ui.screens.CategoryEditScreen(
-                navController = navController,
-                viewModel = categoryViewModelFromParent,
-                categoryToEdit = category,
-                defaultParentId = category?.parentId,
-            )
-        }
-        composable("category_edit?parentId={parentId}") { backStackEntry ->
-            requireNotNull(categoryViewModelFromParent) { "CategoryViewModel must be provided for category_edit route" }
-
-            val parentId = backStackEntry.arguments?.getString("parentId")?.toLongOrNull()
-            com.grafitto.songsapp.ui.screens.CategoryEditScreen(
-                navController = navController,
-                viewModel = categoryViewModelFromParent,
-                categoryToEdit = null,
-                defaultParentId = parentId,
-            )
         }
     }
 }
