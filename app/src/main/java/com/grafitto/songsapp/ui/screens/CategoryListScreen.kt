@@ -1,6 +1,7 @@
 package com.grafitto.songsapp.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,10 +11,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.grafitto.songsapp.data.database.entity.Category
@@ -31,23 +30,23 @@ fun CategoryListScreen(
 ) {
     val categories by viewModel.categories.observeAsState(emptyList())
     val songsByCategory by viewModel.songsByCategoryCount.observeAsState(emptyMap())
-    val scope = rememberCoroutineScope()
     val filteredCategories = categories.filter { it.parentId == parentId }
-    val parentCategory = categories.find { it.id == parentId }
-
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
+    val parentCategory = parentId?.let { pId -> categories.find { it.id == pId } }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
     ) { padding ->
-        Surface(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            color = MaterialTheme.colorScheme.background,
-        ) {
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+            parentCategory?.let {
+                Text(
+                    text = viewModel.getCategoryPath(it, categories),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), thickness = 1.dp)
+            }
+
             if (filteredCategories.isEmpty()) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -62,71 +61,78 @@ fun CategoryListScreen(
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Text(
-                        text = "No hay categorías aún",
+                        text = if (parentCategory != null) "No hay subcategorías aquí" else "No hay categorías aún",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Toca el botón + para crear tu primera categoría",
+                        text = "Toca el botón + para crear una nueva categoría${if (parentCategory != null) " dentro de '${parentCategory.name}'" else ""}",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                     )
                 }
             } else {
                 LazyColumn(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 0.dp, vertical = 0.dp),
+                    modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.Top,
                 ) {
                     items(filteredCategories) { category ->
                         var expanded by remember { mutableStateOf(false) }
-                        Row(
+                        Card(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .clickable { onNavigateToChildren(category) }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    .clickable { onNavigateToChildren(category) },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    category.name ?: "(Sin nombre)",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                )
-                                Text(
-                                    text = viewModel.getCategoryPath(category, categories),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            val songCount = songsByCategory[category.id] ?: 0
-                            if (songCount > 0) {
-                                Badge(modifier = Modifier.padding(start = 8.dp)) { Text("$songCount") }
-                            }
-                            Box {
-                                IconButton(onClick = { expanded = true }) {
-                                    Icon(
-                                        Icons.Default.MoreVert,
-                                        contentDescription = "Opciones",
-                                        tint = MaterialTheme.colorScheme.onSurface,
+                            Row(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        category.name ?: "(Sin nombre)",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                     )
                                 }
-                                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                                    DropdownMenuItem(
-                                        text = { Text("Editar", color = MaterialTheme.colorScheme.onSurface) },
-                                        onClick = {
-                                            expanded = false
-                                            onEditCategory(category)
-                                        },
-                                    )
+                                val songCount = songsByCategory[category.id] ?: 0
+                                if (songCount > 0) {
+                                    Badge(
+                                        modifier = Modifier.padding(start = 8.dp),
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                                    ) { Text("$songCount") }
+                                }
+                                Box {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(
+                                            Icons.Default.MoreVert,
+                                            contentDescription = "Opciones",
+                                            tint = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = expanded,
+                                        onDismissRequest = { expanded = false },
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Editar", color = MaterialTheme.colorScheme.onSurface) },
+                                            onClick = {
+                                                expanded = false
+                                                onEditCategory(category)
+                                            },
+                                        )
+                                    }
                                 }
                             }
                         }
-                        Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), thickness = 1.dp)
                     }
                 }
             }

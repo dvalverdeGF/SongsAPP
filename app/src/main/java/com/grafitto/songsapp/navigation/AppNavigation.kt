@@ -21,8 +21,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -95,13 +97,13 @@ fun AppNavigation(repository: SongsRepository) {
 
         val dynamicNavItems = getDynamicNavItems(navController, currentRoute, baseNavItems, categoryViewModelFromAppNavigation)
 
-        Surface(color = MaterialTheme.colorScheme.background) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
             if (isTablet) {
                 Row {
                     NavigationRail(
                         modifier = Modifier.shadow(4.dp),
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         header = {
                             Text("SongsApp", modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.primary)
                         },
@@ -113,6 +115,14 @@ fun AppNavigation(repository: SongsRepository) {
                                 icon = { Icon(item.icon, contentDescription = item.label) },
                                 label = { Text(item.label) },
                                 alwaysShowLabel = true,
+                                colors =
+                                    NavigationRailItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.primary,
+                                        selectedTextColor = MaterialTheme.colorScheme.primary,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                    ),
                             )
                         }
                     }
@@ -121,6 +131,7 @@ fun AppNavigation(repository: SongsRepository) {
                             contentWindowInsets =
                                 androidx.compose.foundation.layout
                                     .WindowInsets(0, 0, 0, 0),
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         ) { innerPadding ->
                             AppNavHost(navController, repository, Modifier.padding(innerPadding), categoryViewModelFromAppNavigation)
                         }
@@ -128,13 +139,13 @@ fun AppNavigation(repository: SongsRepository) {
                 }
             } else {
                 Scaffold(
-                    containerColor = MaterialTheme.colorScheme.background,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     contentWindowInsets =
                         androidx.compose.foundation.layout
                             .WindowInsets(0, 0, 0, 0),
                     bottomBar = {
                         NavigationBar(
-                            containerColor = MaterialTheme.colorScheme.surface,
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
                             tonalElevation = NavigationBarDefaults.Elevation,
                         ) {
                             dynamicNavItems.forEach { item ->
@@ -144,6 +155,14 @@ fun AppNavigation(repository: SongsRepository) {
                                     icon = { Icon(item.icon, contentDescription = item.label) },
                                     label = { Text(item.label) },
                                     alwaysShowLabel = true,
+                                    colors =
+                                        NavigationBarItemDefaults.colors(
+                                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                                        ),
                                 )
                             }
                         }
@@ -323,6 +342,7 @@ fun AppNavHost(
                 navController = navController,
                 viewModel = categoryViewModelFromParent,
                 categoryToEdit = category,
+                defaultParentId = category?.parentId,
             )
         }
         composable("category_edit?parentId={parentId}") { backStackEntry ->

@@ -1,5 +1,6 @@
 package com.grafitto.songsapp.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -7,17 +8,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.grafitto.songsapp.data.database.entity.Category
@@ -88,12 +90,14 @@ fun CategoryEditScreen(
     var name by remember { mutableStateOf(categoryToEdit?.name ?: "") }
     val allCategories by viewModel.categories.observeAsState(emptyList())
     var parentId by remember { mutableStateOf(if (categoryToEdit != null) categoryToEdit.parentId else defaultParentId) }
-
     var showEmptyNameErrorOnSave by remember { mutableStateOf(false) }
 
-    LaunchedEffect(categoryToEdit) {
+    var expandedDropdown by remember { mutableStateOf(false) }
+
+    LaunchedEffect(categoryToEdit, defaultParentId) {
+        // Asegurarse de que defaultParentId también reinicie el estado
         name = categoryToEdit?.name ?: ""
-        parentId = if (categoryToEdit != null) categoryToEdit.parentId else defaultParentId
+        parentId = categoryToEdit?.parentId ?: defaultParentId
         showEmptyNameErrorOnSave = false
     }
 
@@ -109,7 +113,7 @@ fun CategoryEditScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow, // Fondo de la pantalla
     ) { padding ->
         Box(
             modifier =
@@ -121,7 +125,7 @@ fun CategoryEditScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer), // Color para el Card
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
             ) {
                 Column(
@@ -139,51 +143,89 @@ fun CategoryEditScreen(
                         modifier = Modifier.fillMaxWidth(),
                         enabled = true,
                         isError = showEmptyNameErrorOnSave,
+                        colors =
+                            TextFieldDefaults.colors(
+                                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                unfocusedIndicatorColor = MaterialTheme.colorScheme.outline,
+                                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                cursorColor = MaterialTheme.colorScheme.primary,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                errorContainerColor = Color.Transparent,
+                            ),
                     )
                     if (showEmptyNameErrorOnSave) {
                         Text(
                             text = "El nombre no puede estar vacío",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(start = 16.dp),
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp),
                         )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
-                    var expanded by remember { mutableStateOf(false) }
-                    val parentCategory = allCategories.find { it.id == parentId }
-                    OutlinedButton(
-                        onClick = { expanded = true },
+
+                    // Selector de Categoría Padre con ExposedDropdownMenuBox
+                    ExposedDropdownMenuBox(
+                        expanded = expandedDropdown,
+                        onExpandedChange = { expandedDropdown = !expandedDropdown },
                         modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            ButtonDefaults.outlinedButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.primary,
-                            ),
                     ) {
-                        Text(getFormattedCategoryPath(parentCategory, allCategories), color = MaterialTheme.colorScheme.primary)
-                    }
-                    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, modifier = Modifier.fillMaxWidth()) {
-                        DropdownMenuItem(
-                            text = { Text(getFormattedCategoryPath(null, allCategories), color = MaterialTheme.colorScheme.onSurface) },
-                            onClick = {
-                                parentId = null
-                                expanded = false
-                            },
+                        val parentCategory = allCategories.find { it.id == parentId }
+                        OutlinedTextField(
+                            modifier = Modifier.menuAnchor().fillMaxWidth(), // Importante para ExposedDropdownMenuBox
+                            readOnly = true,
+                            value = getFormattedCategoryPath(parentCategory, allCategories),
+                            onValueChange = {}, // No se necesita para un campo de solo lectura
+                            label = { Text("Categoría Padre") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedDropdown) },
+                            colors =
+                                ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                    focusedTextColor = MaterialTheme.colorScheme.onSurface, // Parámetro corregido
+                                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface, // Parámetro corregido
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
                         )
-                        val selectableCategories =
-                            allCategories.filter { cat ->
-                                cat.id != categoryToEdit?.id &&
-                                    // Cannot select itself
-                                    !isDescendant(cat, categoryToEdit, allCategories) // 'cat' cannot be a descendant of the category being edited
-                            }
-                        selectableCategories.forEach { cat ->
+                        ExposedDropdownMenu(
+                            expanded = expandedDropdown,
+                            onDismissRequest = { expandedDropdown = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                        ) {
                             DropdownMenuItem(
-                                text = { Text(getFormattedCategoryPath(cat, allCategories), color = MaterialTheme.colorScheme.onSurface) },
+                                text = {
+                                    Text(getFormattedCategoryPath(null, allCategories), color = MaterialTheme.colorScheme.onSurface)
+                                }, // Color sobre surfaceContainerHigh
                                 onClick = {
-                                    parentId = cat.id
-                                    expanded = false
+                                    parentId = null
+                                    expandedDropdown = false
                                 },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                             )
+                            val selectableCategories =
+                                allCategories.filter { cat ->
+                                    cat.id != categoryToEdit?.id &&
+                                        !isDescendant(cat, categoryToEdit, allCategories)
+                                }
+                            selectableCategories.forEach { cat ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(getFormattedCategoryPath(cat, allCategories), color = MaterialTheme.colorScheme.onSurface)
+                                    }, // Color sobre surfaceContainerHigh
+                                    onClick = {
+                                        parentId = cat.id
+                                        expandedDropdown = false
+                                    },
+                                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                                )
+                            }
                         }
                     }
                 }
