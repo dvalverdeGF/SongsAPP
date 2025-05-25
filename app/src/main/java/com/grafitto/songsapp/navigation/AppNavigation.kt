@@ -10,10 +10,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CloudUpload // Nueva importación
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -204,7 +204,7 @@ fun getDynamicNavItems(
             listOfNotNull(
                 NavItemData("main", Icons.Default.Home, "Inicio", defaultNavOnClick("main")),
                 NavItemData("categories_nav", Icons.AutoMirrored.Filled.List, "Categorías", defaultNavOnClick("categories")),
-                categoryViewModel?.let { vm -> NavItemData("category_save", Icons.Default.Save, "Guardar") { vm.requestSave() } },
+                categoryViewModel?.let { vm -> NavItemData("category_save", Icons.Filled.CloudUpload, "Guardar") { vm.requestSave() } }, // Icono cambiado
                 NavItemData("back", Icons.AutoMirrored.Filled.ArrowBack, "Atrás") { navController.popBackStack() },
             )
         }
